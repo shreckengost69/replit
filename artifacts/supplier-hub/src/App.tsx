@@ -459,6 +459,7 @@ function getEmailDeliveryError(error: unknown) {
 function PurchaseEntry() {
   const suppliersQuery = useListSuppliers();
   const sendEmailMutation = useSendPurchasePriceEmail();
+  const [status, setStatus] = useState<'Draft' | 'Submitted' | 'Ordered'>('Draft');
   const [supplierId, setSupplierId] = useState('');
   const [itemName, setItemName] = useState('');
   const [price, setPrice] = useState('');
@@ -516,6 +517,7 @@ function PurchaseEntry() {
   };
 
   const resetEntry = () => {
+    setStatus('Draft');
     setSupplierId('');
     setItemName('');
     setPrice('');
@@ -535,9 +537,25 @@ function PurchaseEntry() {
             <h1 className="font-display text-[35px] font-bold leading-[1.04] tracking-[-.055em] sm:text-[45px]">Capture a price.</h1>
             <p className="mt-2 max-w-[560px] text-[14px] leading-6 text-muted-foreground">Choose a supplier, check their current terms, and email a single item reference.</p>
           </div>
-          <div className="flex items-center gap-3 rounded-xl border border-[#d9e4da] bg-[#edf2eb] px-4 py-3 text-[#3d6257]">
-            <ClipboardList size={18} />
-            <span><span className="block font-mono text-[9px] uppercase tracking-[.14em]">Entry mode</span><span className="mt-0.5 block text-[12px] font-semibold">Review then email · not saved</span></span>
+          <div className="flex flex-col gap-3 rounded-xl border border-[#d9e4da] bg-[#edf2eb] px-4 py-3 text-[#3d6257] sm:flex-row sm:items-center">
+            <div className="flex items-center gap-3">
+              <ClipboardList size={18} />
+              <span><span className="block font-mono text-[9px] uppercase tracking-[.14em]">Entry mode</span><span className="mt-0.5 block text-[12px] font-semibold">Review then email · not saved</span></span>
+            </div>
+            <label className="flex items-center gap-2 border-t border-[#d9e4da] pt-3 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
+              <span className="font-mono text-[9px] uppercase tracking-[.14em]">Status</span>
+              <select
+                data-testid="select-entry-status"
+                aria-label="Status"
+                value={status}
+                onChange={(event) => setStatus(event.target.value as 'Draft' | 'Submitted' | 'Ordered')}
+                className="h-8 min-w-[112px] rounded-md border border-[#c8d6c8] bg-white/70 px-2 text-[11px] font-semibold text-[#3d6257] outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+              >
+                <option value="Draft">Draft</option>
+                <option value="Submitted">Submitted</option>
+                <option value="Ordered">Ordered</option>
+              </select>
+            </label>
           </div>
         </div>
 
