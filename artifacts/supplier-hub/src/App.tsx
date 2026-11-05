@@ -580,6 +580,14 @@ function PurchaseEntry() {
 
               <label className="block">
                 <span className="mb-1.5 flex items-center justify-between gap-2 text-[12px] font-semibold text-foreground/80">
+                  Contact
+                  <span className="font-mono text-[9px] font-normal uppercase tracking-[.1em] text-muted-foreground">Supplier record · read only</span>
+                </span>
+                <input data-testid="input-entry-contact" aria-label="Contact (read only)" type="email" readOnly value={selectedSupplier?.contact ?? ''} placeholder="Select a supplier to view contact" className="h-11 w-full cursor-default rounded-lg border border-[#e4ddc9] bg-[#f5f1e6] px-3.5 font-mono text-[12px] text-[#705f3e] outline-none placeholder:font-sans placeholder:text-[12px] placeholder:text-muted-foreground/70" />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 flex items-center justify-between gap-2 text-[12px] font-semibold text-foreground/80">
                   Payment terms
                   <span className="font-mono text-[9px] font-normal uppercase tracking-[.1em] text-muted-foreground">Supplier record · read only</span>
                 </span>
