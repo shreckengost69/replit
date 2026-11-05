@@ -459,7 +459,6 @@ function getEmailDeliveryError(error: unknown) {
 function PurchaseEntry() {
   const suppliersQuery = useListSuppliers();
   const sendEmailMutation = useSendPurchasePriceEmail();
-  const [status, setStatus] = useState<'Draft' | 'Submitted' | 'Ordered'>('Draft');
   const [supplierId, setSupplierId] = useState('');
   const [itemName, setItemName] = useState('');
   const [price, setPrice] = useState('');
@@ -517,7 +516,6 @@ function PurchaseEntry() {
   };
 
   const resetEntry = () => {
-    setStatus('Draft');
     setSupplierId('');
     setItemName('');
     setPrice('');
@@ -544,17 +542,13 @@ function PurchaseEntry() {
             </div>
             <label className="flex items-center gap-2 border-t border-[#d9e4da] pt-3 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
               <span className="font-mono text-[9px] uppercase tracking-[.14em]">Status</span>
-              <select
-                data-testid="select-entry-status"
-                aria-label="Status"
-                value={status}
-                onChange={(event) => setStatus(event.target.value as 'Draft' | 'Submitted' | 'Ordered')}
-                className="h-8 min-w-[112px] rounded-md border border-[#c8d6c8] bg-white/70 px-2 text-[11px] font-semibold text-[#3d6257] outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
-              >
-                <option value="Draft">Draft</option>
-                <option value="Submitted">Submitted</option>
-                <option value="Ordered">Ordered</option>
-              </select>
+              <input
+                data-testid="input-entry-status"
+                aria-label="Status (read only)"
+                readOnly
+                value="Draft"
+                className="h-8 w-[112px] cursor-default rounded-md border border-[#c8d6c8] bg-white/70 px-2 text-[11px] font-semibold text-[#3d6257] outline-none"
+              />
             </label>
           </div>
         </div>
