@@ -35,6 +35,7 @@ router.get("/suppliers", async (req, res): Promise<void> => {
         ilike(suppliersTable.zipCode, `%${search.trim()}%`),
         ilike(suppliersTable.country, `%${search.trim()}%`),
         ilike(suppliersTable.paymentTerms, `%${search.trim()}%`),
+        ilike(suppliersTable.contact, `%${search.trim()}%`),
       )
     : undefined;
   const filters = [

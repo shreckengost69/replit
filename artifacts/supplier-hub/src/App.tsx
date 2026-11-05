@@ -31,6 +31,7 @@ const queryClient = new QueryClient({
 const fieldList = [
   { name: 'supplierId', label: 'Supplier ID', placeholder: 'e.g. SUP-1042', required: true },
   { name: 'supplierName', label: 'Supplier name', placeholder: 'Company or trading name', required: true },
+  { name: 'contact', label: 'Contact email', placeholder: 'name@example.com', required: true },
   { name: 'address', label: 'Street address', placeholder: 'Street and number', required: true },
   { name: 'city', label: 'City', placeholder: 'City', required: true },
   { name: 'state', label: 'State / region', placeholder: 'State or region', required: true },
@@ -51,12 +52,12 @@ type ModalProps = {
 
 function SupplierModal({ open, supplier, onClose, onSubmit, busy, error }: ModalProps) {
   const [values, setValues] = useState<SupplierFormValues>(() => supplier ?? {
-    supplierId: '', supplierName: '', address: '', city: '', state: '', zipCode: '', country: '', paymentTerms: '',
+    supplierId: '', supplierName: '', contact: 'shreckengost@gmail.com', address: '', city: '', state: '', zipCode: '', country: '', paymentTerms: '',
   });
   const [formError, setFormError] = useState('');
   useEffect(() => {
     if (!open) return;
-    setValues(supplier ?? { supplierId: '', supplierName: '', address: '', city: '', state: '', zipCode: '', country: '', paymentTerms: '' });
+    setValues(supplier ?? { supplierId: '', supplierName: '', contact: 'shreckengost@gmail.com', address: '', city: '', state: '', zipCode: '', country: '', paymentTerms: '' });
     setFormError('');
   }, [open, supplier]);
   if (!open) return null;
@@ -89,6 +90,7 @@ function SupplierModal({ open, supplier, onClose, onSubmit, busy, error }: Modal
                 <span className="mb-1.5 block text-[12px] font-semibold text-foreground/80">{field.label}</span>
                 <input
                   data-testid={`input-supplier-${field.name}`}
+                  type={field.name === 'contact' ? 'email' : 'text'}
                   required={field.required}
                   disabled={busy || (Boolean(supplier) && field.name === 'supplierId')}
                   value={values[field.name]}
@@ -308,6 +310,7 @@ function Home() {
                       <span className="min-w-0">
                         <span className="block truncate text-[13px] font-semibold tracking-[-.01em] group-hover:text-primary">{supplier.supplierName}</span>
                         <span className="mt-1 block font-mono text-[10px] text-muted-foreground">{supplier.supplierId}</span>
+                        <span className="mt-1 block truncate text-[10px] text-muted-foreground">{supplier.contact}</span>
                       </span>
                     </div>
                     <span className="flex items-center gap-2 pl-[52px] text-[12px] text-foreground/80 md:pl-0"><MapPin size={13} className="shrink-0 text-muted-foreground" />{[supplier.city, supplier.state].filter(Boolean).join(', ')}</span>
@@ -382,6 +385,7 @@ function Detail() {
   const location = [supplier.city, supplier.state, supplier.zipCode, supplier.country].filter(Boolean).join(', ');
   const details = [
     { label: 'Supplier ID', value: supplier.supplierId, mono: true },
+    { label: 'Contact email', value: supplier.contact },
     { label: 'Payment terms', value: supplier.paymentTerms, highlight: true },
     { label: 'Street address', value: supplier.address },
     { label: 'City', value: supplier.city },

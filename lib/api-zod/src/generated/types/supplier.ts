@@ -14,5 +14,6 @@ export interface Supplier {
   state: string;
   zipCode: string;
   country: string;
+  contact: string;
   paymentTerms: string;
 }

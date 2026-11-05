@@ -17,6 +17,7 @@ export interface Supplier {
   state: string;
   zipCode: string;
   country: string;
+  contact: string;
   paymentTerms: string;
 }
 
@@ -36,6 +37,8 @@ export interface SupplierInput {
   /** @minLength 1 */
   country: string;
   /** @minLength 1 */
+  contact: string;
+  /** @minLength 1 */
   paymentTerms: string;
 }
 
@@ -52,6 +55,8 @@ export interface SupplierUpdate {
   zipCode: string;
   /** @minLength 1 */
   country: string;
+  /** @minLength 1 */
+  contact: string;
   /** @minLength 1 */
   paymentTerms: string;
 }

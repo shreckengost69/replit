@@ -214,6 +214,9 @@ components:
           type: string
         country:
           type: string
+        contact:
+          type: string
+          format: email
         paymentTerms:
           type: string
       required:
@@ -224,6 +227,7 @@ components:
         - state
         - zipCode
         - country
+        - contact
         - paymentTerms
     SupplierInput:
       type: object
@@ -249,6 +253,10 @@ components:
         country:
           type: string
           minLength: 1
+        contact:
+          type: string
+          format: email
+          minLength: 1
         paymentTerms:
           type: string
           minLength: 1
@@ -260,6 +268,7 @@ components:
         - state
         - zipCode
         - country
+        - contact
         - paymentTerms
     SupplierUpdate:
       type: object
@@ -282,6 +291,10 @@ components:
         country:
           type: string
           minLength: 1
+        contact:
+          type: string
+          format: email
+          minLength: 1
         paymentTerms:
           type: string
           minLength: 1
@@ -292,6 +305,7 @@ components:
         - state
         - zipCode
         - country
+        - contact
         - paymentTerms
     SupplierBreakdown:
       type: object

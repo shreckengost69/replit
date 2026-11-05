@@ -59,6 +59,7 @@ export const ListSuppliersResponseItem = zod.object({
   "state": zod.string(),
   "zipCode": zod.string(),
   "country": zod.string(),
+  "contact": zod.string().email(),
   "paymentTerms": zod.string()
 })
 export const ListSuppliersResponse = zod.array(ListSuppliersResponseItem)
@@ -77,6 +78,7 @@ export const ListSuppliersResponse = zod.array(ListSuppliersResponseItem)
 
 
 
+
 export const CreateSupplierBody = zod.object({
   "supplierId": zod.string().min(1),
   "supplierName": zod.string().min(1),
@@ -85,6 +87,7 @@ export const CreateSupplierBody = zod.object({
   "state": zod.string().min(1),
   "zipCode": zod.string().min(1),
   "country": zod.string().min(1),
+  "contact": zod.string().email().min(1),
   "paymentTerms": zod.string().min(1)
 })
 
@@ -96,6 +99,7 @@ export const CreateSupplierResponse = zod.object({
   "state": zod.string(),
   "zipCode": zod.string(),
   "country": zod.string(),
+  "contact": zod.string().email(),
   "paymentTerms": zod.string()
 })
 
@@ -133,6 +137,7 @@ export const GetSupplierResponse = zod.object({
   "state": zod.string(),
   "zipCode": zod.string(),
   "country": zod.string(),
+  "contact": zod.string().email(),
   "paymentTerms": zod.string()
 })
 
@@ -153,6 +158,7 @@ export const UpdateSupplierParams = zod.object({
 
 
 
+
 export const UpdateSupplierBody = zod.object({
   "supplierName": zod.string().min(1),
   "address": zod.string().min(1),
@@ -160,6 +166,7 @@ export const UpdateSupplierBody = zod.object({
   "state": zod.string().min(1),
   "zipCode": zod.string().min(1),
   "country": zod.string().min(1),
+  "contact": zod.string().email().min(1),
   "paymentTerms": zod.string().min(1)
 })
 
@@ -171,6 +178,7 @@ export const UpdateSupplierResponse = zod.object({
   "state": zod.string(),
   "zipCode": zod.string(),
   "country": zod.string(),
+  "contact": zod.string().email(),
   "paymentTerms": zod.string()
 })
 

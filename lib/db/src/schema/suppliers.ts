@@ -11,6 +11,7 @@ export const suppliersTable = pgTable("suppliers", {
   zipCode: text("zip_code").notNull(),
   country: text("country").notNull(),
   paymentTerms: text("payment_terms").notNull(),
+  contact: text("contact").notNull().default("shreckengost@gmail.com"),
 });
 
 export const insertSupplierSchema = createInsertSchema(suppliersTable);

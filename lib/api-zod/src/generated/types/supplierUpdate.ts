@@ -20,5 +20,7 @@ export interface SupplierUpdate {
   /** @minLength 1 */
   country: string;
   /** @minLength 1 */
+  contact: string;
+  /** @minLength 1 */
   paymentTerms: string;
 }
