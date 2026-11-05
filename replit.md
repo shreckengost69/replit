@@ -34,7 +34,7 @@ Supplier Hub is a responsive procurement directory for searching, analyzing, and
 
 ## Product
 
-Users can search and filter suppliers by name, address, city, state, ZIP code, country, or payment terms; view record details; create, edit, and delete records; and review location and payment-term summaries.
+Users can search and filter suppliers by name, address, city, state, ZIP code, country, or payment terms; view record details; create, edit, and delete records; and review location and payment-term summaries. The purchase-entry page lets users choose a supplier, enter an item and price, and review that supplier's read-only payment terms without saving an order.
 
 ## User preferences
 

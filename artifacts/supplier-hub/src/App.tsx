@@ -5,9 +5,9 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import {
-  ArrowLeft, ArrowUpDown, Building2, Check, ChevronRight,
-  CircleAlert, Compass, Globe2, LoaderCircle, MapPin, Pencil, Plus, Search,
-  SlidersHorizontal, Trash2, UsersRound, X,
+  ArrowLeft, ArrowUpDown, BadgeCheck, Building2, Check, ChevronRight,
+  CircleAlert, ClipboardList, Compass, FilePlus2, Globe2, LoaderCircle, MapPin,
+  Package, Pencil, Plus, Search, SlidersHorizontal, Trash2, UsersRound, X,
 } from 'lucide-react';
 import {
   getGetSupplierQueryKey,
@@ -130,7 +130,12 @@ function AppFrame({ children }: { children: ReactNode }) {
             <span className="h-1.5 w-1.5 rounded-full bg-[#b4d5b0]" />
             SUPPLIER OPERATIONS
           </div>
-          <span className="font-mono text-[10px] tracking-wide text-[#b6c3bf]">INTERNAL</span>
+          <div className="flex items-center gap-3">
+            <Link href="/purchase-entry" data-testid="link-purchase-entry" className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/15 bg-white/[.06] px-3 text-[11px] font-semibold text-[#f3f0e8] transition hover:bg-white/[.12]">
+              <FilePlus2 size={14} /> <span className="hidden sm:inline">Purchase entry</span><span className="sm:hidden">Entry</span>
+            </Link>
+            <span className="hidden font-mono text-[10px] tracking-wide text-[#b6c3bf] sm:block">INTERNAL</span>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-[1480px] px-5 pb-16 pt-8 sm:px-8 sm:pt-10 lg:px-12">{children}</main>
@@ -436,6 +441,180 @@ function Detail() {
   );
 }
 
+type EntryReview = { supplierName: string; supplierId: string; paymentTerms: string; itemName: string; price: string };
+
+function PurchaseEntry() {
+  const suppliersQuery = useListSuppliers();
+  const [supplierId, setSupplierId] = useState('');
+  const [itemName, setItemName] = useState('');
+  const [price, setPrice] = useState('');
+  const [validationError, setValidationError] = useState('');
+  const [review, setReview] = useState<EntryReview | null>(null);
+  const suppliers = suppliersQuery.data ?? [];
+  const selectedSupplier = suppliers.find((supplier) => supplier.supplierId === supplierId);
+
+  const submitEntry = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setValidationError('');
+    if (!selectedSupplier) {
+      setValidationError('Select a supplier before reviewing this entry.');
+      return;
+    }
+    if (!itemName.trim()) {
+      setValidationError('Enter an item name.');
+      return;
+    }
+    const amount = Number(price);
+    if (!price.trim() || !Number.isFinite(amount) || amount < 0 || !/^\d+(\.\d{1,2})?$/.test(price.trim())) {
+      setValidationError('Enter a nonnegative price with no more than two decimal places.');
+      return;
+    }
+    setReview({
+      supplierName: selectedSupplier.supplierName,
+      supplierId: selectedSupplier.supplierId,
+      paymentTerms: selectedSupplier.paymentTerms,
+      itemName: itemName.trim(),
+      price: amount.toFixed(2),
+    });
+  };
+
+  const resetEntry = () => {
+    setSupplierId('');
+    setItemName('');
+    setPrice('');
+    setValidationError('');
+    setReview(null);
+  };
+
+  return (
+    <AppFrame>
+      <div className="page-enter mx-auto max-w-[1040px]">
+        <div className="mb-7 flex flex-col gap-5 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <Link href="/" data-testid="link-entry-back-directory" className="mb-6 inline-flex items-center gap-2 text-[12px] font-semibold text-muted-foreground transition hover:text-primary"><ArrowLeft size={15} /> Supplier directory</Link>
+            <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[.18em] text-primary">
+              <span className="h-px w-7 bg-primary/60" /> Procurement workspace / item capture
+            </div>
+            <h1 className="font-display text-[35px] font-bold leading-[1.04] tracking-[-.055em] sm:text-[45px]">Capture a price.</h1>
+            <p className="mt-2 max-w-[560px] text-[14px] leading-6 text-muted-foreground">Choose a supplier, check their current terms, and record a single item reference.</p>
+          </div>
+          <div className="flex items-center gap-3 rounded-xl border border-[#d9e4da] bg-[#edf2eb] px-4 py-3 text-[#3d6257]">
+            <ClipboardList size={18} />
+            <span><span className="block font-mono text-[9px] uppercase tracking-[.14em]">Entry mode</span><span className="mt-0.5 block text-[12px] font-semibold">Form only · not submitted</span></span>
+          </div>
+        </div>
+
+        {suppliersQuery.isError && (
+          <div role="alert" className="mb-5 flex flex-col items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-5 sm:flex-row sm:items-center">
+            <CircleAlert size={19} className="text-destructive" />
+            <div className="flex-1"><p className="text-sm font-semibold">Supplier records couldn’t be loaded</p><p className="mt-1 text-xs text-muted-foreground">The supplier list is needed to keep terms accurate.</p></div>
+            <button type="button" data-testid="button-retry-entry-suppliers" onClick={() => suppliersQuery.refetch()} className="rounded-md border border-border px-3 py-2 text-xs font-semibold hover:bg-muted">Retry</button>
+          </div>
+        )}
+
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,.75fr)]">
+          <form onSubmit={submitEntry} className="overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="border-b border-border px-5 py-5 sm:px-7">
+              <p className="font-mono text-[9px] uppercase tracking-[.16em] text-primary">01 / Source</p>
+              <h2 className="mt-1 font-display text-[21px] font-bold tracking-[-.04em]">Supplier and terms</h2>
+              <p className="mt-1 text-[12px] text-muted-foreground">Terms are read directly from the selected supplier record.</p>
+            </div>
+            <div className="space-y-5 px-5 py-5 sm:px-7 sm:py-6">
+              <label className="block">
+                <span className="mb-1.5 block text-[12px] font-semibold text-foreground/80">Supplier <span className="text-destructive">*</span></span>
+                <select data-testid="select-entry-supplier" required disabled={suppliersQuery.isLoading || suppliersQuery.isError} value={supplierId} onChange={(event) => { setSupplierId(event.target.value); setReview(null); setValidationError(''); }} className="h-12 w-full rounded-lg border border-input bg-background px-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-60">
+                  <option value="">{suppliersQuery.isLoading ? 'Loading supplier records…' : suppliersQuery.isError ? 'Supplier records unavailable' : 'Select a supplier'}</option>
+                  {suppliers.map((supplier) => <option key={supplier.supplierId} value={supplier.supplierId}>{supplier.supplierName} · {supplier.supplierId}</option>)}
+                </select>
+              </label>
+
+              {suppliersQuery.isSuccess && suppliers.length === 0 && (
+                <div className="rounded-lg border border-[#e4ddc9] bg-[#f7f3e9] px-4 py-3 text-[12px] leading-5 text-[#71664e]">
+                  No supplier records are available yet. Add a supplier in the directory to start an item entry.
+                </div>
+              )}
+
+              {selectedSupplier && (
+                <div data-testid="text-entry-supplier-location" className="flex items-start gap-3 rounded-lg border border-border/80 bg-[#f7f5ee] px-4 py-3">
+                  <MapPin size={15} className="mt-0.5 shrink-0 text-primary" />
+                  <div className="min-w-0"><p className="text-[12px] font-semibold">{selectedSupplier.supplierName}</p><p className="mt-1 text-[11px] leading-5 text-muted-foreground">{selectedSupplier.address}, {selectedSupplier.city}, {selectedSupplier.state} {selectedSupplier.zipCode}, {selectedSupplier.country}</p></div>
+                </div>
+              )}
+
+              <label className="block">
+                <span className="mb-1.5 flex items-center justify-between gap-2 text-[12px] font-semibold text-foreground/80">
+                  Payment terms
+                  <span className="font-mono text-[9px] font-normal uppercase tracking-[.1em] text-muted-foreground">Supplier record · read only</span>
+                </span>
+                <input data-testid="input-entry-payment-terms" aria-label="Payment terms (read only)" readOnly value={selectedSupplier?.paymentTerms ?? ''} placeholder="Select a supplier to view terms" className="h-11 w-full cursor-default rounded-lg border border-[#e4ddc9] bg-[#f5f1e6] px-3.5 font-mono text-[12px] text-[#705f3e] outline-none placeholder:font-sans placeholder:text-[12px] placeholder:text-muted-foreground/70" />
+              </label>
+
+              <div className="border-t border-border pt-5">
+                <p className="font-mono text-[9px] uppercase tracking-[.16em] text-primary">02 / Item reference</p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_180px]">
+                  <label className="block">
+                    <span className="mb-1.5 block text-[12px] font-semibold text-foreground/80">Item name <span className="text-destructive">*</span></span>
+                    <input data-testid="input-entry-item-name" required maxLength={120} value={itemName} onChange={(event) => { setItemName(event.target.value); setReview(null); }} placeholder="e.g. Corrugated shipping carton" className="h-11 w-full rounded-lg border border-input bg-background px-3.5 text-sm outline-none transition placeholder:text-muted-foreground/65 focus:border-primary focus:ring-2 focus:ring-primary/15" />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1.5 block text-[12px] font-semibold text-foreground/80">Unit price <span className="text-destructive">*</span></span>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-mono text-[13px] text-muted-foreground">$</span>
+                      <input data-testid="input-entry-price" required type="number" min="0" step="0.01" inputMode="decimal" value={price} onChange={(event) => { setPrice(event.target.value); setReview(null); }} placeholder="0.00" className="h-11 w-full rounded-lg border border-input bg-background pl-8 pr-3.5 font-mono text-[13px] outline-none transition placeholder:text-muted-foreground/65 focus:border-primary focus:ring-2 focus:ring-primary/15" />
+                    </div>
+                  </label>
+                </div>
+                <p className="mt-2 text-[10px] text-muted-foreground">Enter a nonnegative amount, up to two decimal places.</p>
+              </div>
+
+              {validationError && <p role="alert" className="flex items-center gap-2 rounded-lg bg-destructive/5 px-3.5 py-3 text-[12px] text-destructive"><CircleAlert size={15} />{validationError}</p>}
+              <div className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
+                <button type="button" data-testid="button-reset-entry" onClick={resetEntry} className="h-11 rounded-lg px-5 text-sm font-semibold text-muted-foreground transition hover:bg-muted">Clear form</button>
+                <button data-testid="button-review-entry" type="submit" disabled={suppliersQuery.isLoading || suppliersQuery.isError || suppliers.length === 0} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-55">
+                  <Check size={16} /> Review entry
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <aside className="flex flex-col gap-4">
+            <section className="relative overflow-hidden rounded-2xl border border-[#d9e4da] bg-[#edf2eb] px-5 py-6 sm:px-6">
+              <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full border border-[#d8e3d7]" />
+              <div className="relative flex items-center gap-2 text-primary"><Package size={16} /><span className="font-mono text-[9px] uppercase tracking-[.15em]">Entry preview</span></div>
+              {review ? (
+                <div className="relative mt-5">
+                  <div className="flex items-center gap-2 rounded-lg bg-[#dfe9df] px-3 py-2 text-[11px] font-semibold text-[#3d6257]"><BadgeCheck size={15} /> Ready for your records</div>
+                  <h3 data-testid="text-entry-review-item" className="mt-5 font-display text-[23px] font-bold leading-tight tracking-[-.04em]">{review.itemName}</h3>
+                  <p className="mt-1 font-mono text-[11px] text-muted-foreground">{review.supplierName} · {review.supplierId}</p>
+                  <div className="mt-5 border-t border-[#d6e0d5] pt-4">
+                    <div className="flex items-baseline justify-between gap-3"><span className="text-[11px] text-muted-foreground">Unit price</span><span data-testid="text-entry-review-price" className="font-mono text-[20px] font-medium text-[#344f45]">${review.price}</span></div>
+                    <div className="mt-3 flex items-baseline justify-between gap-3"><span className="text-[11px] text-muted-foreground">Payment terms</span><span data-testid="text-entry-review-terms" className="text-right font-mono text-[11px] font-medium text-[#705f3e]">{review.paymentTerms}</span></div>
+                  </div>
+                  <p className="mt-5 text-[11px] leading-5 text-[#65756c]">This is a local review only. Nothing has been saved or submitted.</p>
+                </div>
+              ) : (
+                <div className="relative mt-5 border-t border-[#d6e0d5] pt-5">
+                  <p className="font-display text-[22px] font-bold leading-[1.12] tracking-[-.04em]">A clear reference, before the next step.</p>
+                  <p className="mt-2 text-[12px] leading-5 text-[#65756c]">Your selected supplier’s terms stay attached to this preview so they’re easy to verify.</p>
+                  <div className="mt-6 flex items-center gap-3 rounded-lg border border-[#d6e0d5] bg-[#f4f6f0]/80 px-3 py-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e2eae0] text-primary"><ClipboardList size={16} /></span>
+                    <span><span className="block font-mono text-[9px] uppercase tracking-[.12em] text-[#75847b]">What you’ll review</span><span className="mt-1 block text-[11px] font-semibold text-[#43594f]">Supplier · item · price · terms</span></span>
+                  </div>
+                </div>
+              )}
+            </section>
+            <section className="rounded-xl border border-border bg-card px-5 py-5">
+              <p className="font-mono text-[9px] uppercase tracking-[.15em] text-muted-foreground">A note on accuracy</p>
+              <p className="mt-2 text-[12px] leading-5 text-muted-foreground">Payment terms are never typed into this form. To change them, update the supplier record in the directory.</p>
+              <Link href="/" className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary transition hover:gap-2.5">Open supplier directory <ChevronRight size={14} /></Link>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </AppFrame>
+  );
+}
+
 function RoutedErrorBoundary({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   return <ErrorBoundary resetKey={location}>{children}</ErrorBoundary>;
@@ -447,6 +626,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/suppliers/:supplierId" component={Detail} />
+        <Route path="/purchase-entry" component={PurchaseEntry} />
         <Route component={NotFound} />
       </Switch>
     </RoutedErrorBoundary>
