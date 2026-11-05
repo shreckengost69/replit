@@ -459,6 +459,7 @@ function getEmailDeliveryError(error: unknown) {
 function PurchaseEntry() {
   const suppliersQuery = useListSuppliers();
   const sendEmailMutation = useSendPurchasePriceEmail();
+  const [status, setStatus] = useState<'Draft' | 'Sent'>('Draft');
   const [supplierId, setSupplierId] = useState('');
   const [itemName, setItemName] = useState('');
   const [price, setPrice] = useState('');
@@ -470,6 +471,7 @@ function PurchaseEntry() {
   const selectedSupplier = suppliers.find((supplier) => supplier.supplierId === supplierId);
 
   const clearReviewState = () => {
+    setStatus('Draft');
     setReview(null);
     setEmailSentTo('');
     setEmailError('');
@@ -501,6 +503,7 @@ function PurchaseEntry() {
       itemName: itemName.trim(),
       price: amount.toFixed(2),
     });
+    setStatus('Sent');
   };
 
   const sendReviewedEntry = () => {
@@ -546,7 +549,7 @@ function PurchaseEntry() {
                 data-testid="input-entry-status"
                 aria-label="Status (read only)"
                 readOnly
-                value="Draft"
+                value={status}
                 className="h-8 w-[112px] cursor-default rounded-md border border-[#c8d6c8] bg-white/70 px-2 text-[11px] font-semibold text-[#3d6257] outline-none"
               />
             </label>
