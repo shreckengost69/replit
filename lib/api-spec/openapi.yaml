@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: suppliers
+    description: Supplier records and directory analytics
 paths:
   /healthz:
     get:
@@ -24,6 +26,142 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /suppliers:
+    get:
+      operationId: listSuppliers
+      tags: [suppliers]
+      summary: List suppliers
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: city
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: paymentTerms
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [supplierName, city, supplierId]
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        "200":
+          description: Matching supplier records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Supplier"
+    post:
+      operationId: createSupplier
+      tags: [suppliers]
+      summary: Create a supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierInput"
+      responses:
+        "201":
+          description: Supplier created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+  /suppliers/summary:
+    get:
+      operationId: getSupplierSummary
+      tags: [suppliers]
+      summary: Get supplier directory summary
+      responses:
+        "200":
+          description: Directory totals and breakdowns
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupplierSummary"
+  /suppliers/{supplierId}:
+    get:
+      operationId: getSupplier
+      tags: [suppliers]
+      summary: Get a supplier
+      parameters:
+        - name: supplierId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Supplier record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        "404":
+          description: Supplier not found
+    patch:
+      operationId: updateSupplier
+      tags: [suppliers]
+      summary: Update a supplier
+      parameters:
+        - name: supplierId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierUpdate"
+      responses:
+        "200":
+          description: Supplier updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        "404":
+          description: Supplier not found
+    delete:
+      operationId: deleteSupplier
+      tags: [suppliers]
+      summary: Delete a supplier
+      parameters:
+        - name: supplierId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Supplier deleted
+        "404":
+          description: Supplier not found
 components:
   schemas:
     HealthStatus:
@@ -33,4 +171,131 @@ components:
           type: string
       required:
         - status
+    Supplier:
+      type: object
+      properties:
+        supplierId:
+          type: string
+        supplierName:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
+        country:
+          type: string
+        paymentTerms:
+          type: string
+      required:
+        - supplierId
+        - supplierName
+        - address
+        - city
+        - state
+        - zipCode
+        - country
+        - paymentTerms
+    SupplierInput:
+      type: object
+      properties:
+        supplierId:
+          type: string
+          minLength: 1
+        supplierName:
+          type: string
+          minLength: 1
+        address:
+          type: string
+          minLength: 1
+        city:
+          type: string
+          minLength: 1
+        state:
+          type: string
+          minLength: 1
+        zipCode:
+          type: string
+          minLength: 1
+        country:
+          type: string
+          minLength: 1
+        paymentTerms:
+          type: string
+          minLength: 1
+      required:
+        - supplierId
+        - supplierName
+        - address
+        - city
+        - state
+        - zipCode
+        - country
+        - paymentTerms
+    SupplierUpdate:
+      type: object
+      properties:
+        supplierName:
+          type: string
+          minLength: 1
+        address:
+          type: string
+          minLength: 1
+        city:
+          type: string
+          minLength: 1
+        state:
+          type: string
+          minLength: 1
+        zipCode:
+          type: string
+          minLength: 1
+        country:
+          type: string
+          minLength: 1
+        paymentTerms:
+          type: string
+          minLength: 1
+      required:
+        - supplierName
+        - address
+        - city
+        - state
+        - zipCode
+        - country
+        - paymentTerms
+    SupplierBreakdown:
+      type: object
+      properties:
+        label:
+          type: string
+        count:
+          type: integer
+      required: [label, count]
+    SupplierSummary:
+      type: object
+      properties:
+        totalSuppliers:
+          type: integer
+        cityCount:
+          type: integer
+        countryCount:
+          type: integer
+        paymentTerms:
+          type: array
+          items:
+            $ref: "#/components/schemas/SupplierBreakdown"
+        topCities:
+          type: array
+          items:
+            $ref: "#/components/schemas/SupplierBreakdown"
+      required:
+        - totalSuppliers
+        - cityCount
+        - countryCount
+        - paymentTerms
+        - topCities
 

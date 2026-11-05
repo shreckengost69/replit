@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Supplier Hub"
+description = "A responsive supplier management app for exploring, analyzing, and maintaining supplier records imported from the provided CSV."
+version = "1.0.0"
+id = "artifacts/supplier-hub"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24613
+
+[services.development]
+run = "pnpm --filter @workspace/supplier-hub run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/supplier-hub", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/supplier-hub/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24613"
+BASE_PATH = "/"

@@ -1,6 +1,6 @@
-# [Project name]
+# Supplier Hub
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Supplier Hub is a responsive procurement directory for searching, analyzing, and maintaining supplier records.
 
 ## Run & Operate
 
@@ -22,23 +22,27 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/supplier-hub` — Supplier Hub web interface
+- `artifacts/api-server/src/routes/suppliers.ts` — supplier directory and summary API
+- `lib/db/src/schema/suppliers.ts` — supplier database table
+- `lib/api-spec/openapi.yaml` — API contract and generated client source
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Supplier IDs from the source spreadsheet are stable record keys.
+- Supplier summary counts are calculated from the database, not maintained as duplicate totals.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Users can search and filter suppliers by name, address, city, state, ZIP code, country, or payment terms; view record details; create, edit, and delete records; and review location and payment-term summaries.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+No additional preferences recorded.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Regenerate the API client and Zod validators after changing `lib/api-spec/openapi.yaml`.
 
 ## Pointers
 
