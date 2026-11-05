@@ -6,7 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import {
   ArrowLeft, ArrowUpDown, BadgeCheck, Building2, Check, ChevronRight,
-  CircleAlert, ClipboardList, Compass, FilePlus2, Globe2, LoaderCircle, MapPin,
+  CircleAlert, ClipboardList, Compass, FilePlus2, Globe2, LoaderCircle, Mail, MapPin,
   Package, Pencil, Plus, Search, SlidersHorizontal, Trash2, UsersRound, X,
 } from 'lucide-react';
 import {
@@ -18,6 +18,7 @@ import {
   useGetSupplier,
   useGetSupplierSummary,
   useListSuppliers,
+  useSendPurchasePriceEmail,
   useUpdateSupplier,
 } from '@workspace/api-client-react';
 import type { Supplier, SupplierInput, SupplierSummary, SupplierUpdate } from '@workspace/api-client-react';
@@ -443,19 +444,39 @@ function Detail() {
 
 type EntryReview = { supplierName: string; supplierId: string; paymentTerms: string; itemName: string; price: string };
 
+function getEmailDeliveryError(error: unknown) {
+  if (typeof error === 'object' && error !== null && 'data' in error) {
+    const data = (error as { data?: { error?: unknown } }).data;
+    if (typeof data?.error === 'string') return data.error;
+  }
+  return 'Email could not be sent. Check the Gmail connection and try again.';
+}
+
 function PurchaseEntry() {
   const suppliersQuery = useListSuppliers();
+  const sendEmailMutation = useSendPurchasePriceEmail();
   const [supplierId, setSupplierId] = useState('');
   const [itemName, setItemName] = useState('');
   const [price, setPrice] = useState('');
   const [validationError, setValidationError] = useState('');
   const [review, setReview] = useState<EntryReview | null>(null);
+  const [emailSentTo, setEmailSentTo] = useState('');
+  const [emailError, setEmailError] = useState('');
   const suppliers = suppliersQuery.data ?? [];
   const selectedSupplier = suppliers.find((supplier) => supplier.supplierId === supplierId);
+
+  const clearReviewState = () => {
+    setReview(null);
+    setEmailSentTo('');
+    setEmailError('');
+    sendEmailMutation.reset();
+  };
 
   const submitEntry = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setValidationError('');
+    setEmailSentTo('');
+    setEmailError('');
     if (!selectedSupplier) {
       setValidationError('Select a supplier before reviewing this entry.');
       return;
@@ -478,12 +499,24 @@ function PurchaseEntry() {
     });
   };
 
+  const sendReviewedEntry = () => {
+    if (!review || sendEmailMutation.isPending || emailSentTo) return;
+    setEmailError('');
+    sendEmailMutation.mutate(
+      { data: { supplierId: review.supplierId, itemName: review.itemName, price: review.price } },
+      {
+        onSuccess: (result) => setEmailSentTo(result.recipient),
+        onError: (error) => setEmailError(getEmailDeliveryError(error)),
+      },
+    );
+  };
+
   const resetEntry = () => {
     setSupplierId('');
     setItemName('');
     setPrice('');
     setValidationError('');
-    setReview(null);
+    clearReviewState();
   };
 
   return (
@@ -496,11 +529,11 @@ function PurchaseEntry() {
               <span className="h-px w-7 bg-primary/60" /> Procurement workspace / item capture
             </div>
             <h1 className="font-display text-[35px] font-bold leading-[1.04] tracking-[-.055em] sm:text-[45px]">Capture a price.</h1>
-            <p className="mt-2 max-w-[560px] text-[14px] leading-6 text-muted-foreground">Choose a supplier, check their current terms, and record a single item reference.</p>
+            <p className="mt-2 max-w-[560px] text-[14px] leading-6 text-muted-foreground">Choose a supplier, check their current terms, and email a single item reference.</p>
           </div>
           <div className="flex items-center gap-3 rounded-xl border border-[#d9e4da] bg-[#edf2eb] px-4 py-3 text-[#3d6257]">
             <ClipboardList size={18} />
-            <span><span className="block font-mono text-[9px] uppercase tracking-[.14em]">Entry mode</span><span className="mt-0.5 block text-[12px] font-semibold">Form only · not submitted</span></span>
+            <span><span className="block font-mono text-[9px] uppercase tracking-[.14em]">Entry mode</span><span className="mt-0.5 block text-[12px] font-semibold">Review then email · not saved</span></span>
           </div>
         </div>
 
@@ -522,7 +555,7 @@ function PurchaseEntry() {
             <div className="space-y-5 px-5 py-5 sm:px-7 sm:py-6">
               <label className="block">
                 <span className="mb-1.5 block text-[12px] font-semibold text-foreground/80">Supplier <span className="text-destructive">*</span></span>
-                <select data-testid="select-entry-supplier" required disabled={suppliersQuery.isLoading || suppliersQuery.isError} value={supplierId} onChange={(event) => { setSupplierId(event.target.value); setReview(null); setValidationError(''); }} className="h-12 w-full rounded-lg border border-input bg-background px-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-60">
+                <select data-testid="select-entry-supplier" required disabled={suppliersQuery.isLoading || suppliersQuery.isError || sendEmailMutation.isPending} value={supplierId} onChange={(event) => { setSupplierId(event.target.value); clearReviewState(); setValidationError(''); }} className="h-12 w-full rounded-lg border border-input bg-background px-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-60">
                   <option value="">{suppliersQuery.isLoading ? 'Loading supplier records…' : suppliersQuery.isError ? 'Supplier records unavailable' : 'Select a supplier'}</option>
                   {suppliers.map((supplier) => <option key={supplier.supplierId} value={supplier.supplierId}>{supplier.supplierName} · {supplier.supplierId}</option>)}
                 </select>
@@ -554,13 +587,13 @@ function PurchaseEntry() {
                 <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_180px]">
                   <label className="block">
                     <span className="mb-1.5 block text-[12px] font-semibold text-foreground/80">Item name <span className="text-destructive">*</span></span>
-                    <input data-testid="input-entry-item-name" required maxLength={120} value={itemName} onChange={(event) => { setItemName(event.target.value); setReview(null); }} placeholder="e.g. Corrugated shipping carton" className="h-11 w-full rounded-lg border border-input bg-background px-3.5 text-sm outline-none transition placeholder:text-muted-foreground/65 focus:border-primary focus:ring-2 focus:ring-primary/15" />
+                    <input data-testid="input-entry-item-name" required maxLength={120} disabled={sendEmailMutation.isPending} value={itemName} onChange={(event) => { setItemName(event.target.value); clearReviewState(); }} placeholder="e.g. Corrugated shipping carton" className="h-11 w-full rounded-lg border border-input bg-background px-3.5 text-sm outline-none transition placeholder:text-muted-foreground/65 focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-60" />
                   </label>
                   <label className="block">
                     <span className="mb-1.5 block text-[12px] font-semibold text-foreground/80">Unit price <span className="text-destructive">*</span></span>
                     <div className="relative">
                       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-mono text-[13px] text-muted-foreground">$</span>
-                      <input data-testid="input-entry-price" required type="number" min="0" step="0.01" inputMode="decimal" value={price} onChange={(event) => { setPrice(event.target.value); setReview(null); }} placeholder="0.00" className="h-11 w-full rounded-lg border border-input bg-background pl-8 pr-3.5 font-mono text-[13px] outline-none transition placeholder:text-muted-foreground/65 focus:border-primary focus:ring-2 focus:ring-primary/15" />
+                      <input data-testid="input-entry-price" required type="number" min="0" step="0.01" inputMode="decimal" disabled={sendEmailMutation.isPending} value={price} onChange={(event) => { setPrice(event.target.value); clearReviewState(); }} placeholder="0.00" className="h-11 w-full rounded-lg border border-input bg-background pl-8 pr-3.5 font-mono text-[13px] outline-none transition placeholder:text-muted-foreground/65 focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-60" />
                     </div>
                   </label>
                 </div>
@@ -569,8 +602,8 @@ function PurchaseEntry() {
 
               {validationError && <p role="alert" className="flex items-center gap-2 rounded-lg bg-destructive/5 px-3.5 py-3 text-[12px] text-destructive"><CircleAlert size={15} />{validationError}</p>}
               <div className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
-                <button type="button" data-testid="button-reset-entry" onClick={resetEntry} className="h-11 rounded-lg px-5 text-sm font-semibold text-muted-foreground transition hover:bg-muted">Clear form</button>
-                <button data-testid="button-review-entry" type="submit" disabled={suppliersQuery.isLoading || suppliersQuery.isError || suppliers.length === 0} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-55">
+                <button type="button" data-testid="button-reset-entry" disabled={sendEmailMutation.isPending} onClick={resetEntry} className="h-11 rounded-lg px-5 text-sm font-semibold text-muted-foreground transition hover:bg-muted disabled:opacity-55">Clear form</button>
+                <button data-testid="button-review-entry" type="submit" disabled={suppliersQuery.isLoading || suppliersQuery.isError || suppliers.length === 0 || sendEmailMutation.isPending} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-55">
                   <Check size={16} /> Review entry
                 </button>
               </div>
@@ -583,22 +616,32 @@ function PurchaseEntry() {
               <div className="relative flex items-center gap-2 text-primary"><Package size={16} /><span className="font-mono text-[9px] uppercase tracking-[.15em]">Entry preview</span></div>
               {review ? (
                 <div className="relative mt-5">
-                  <div className="flex items-center gap-2 rounded-lg bg-[#dfe9df] px-3 py-2 text-[11px] font-semibold text-[#3d6257]"><BadgeCheck size={15} /> Ready for your records</div>
+                  <div className="flex items-center gap-2 rounded-lg bg-[#dfe9df] px-3 py-2 text-[11px] font-semibold text-[#3d6257]"><BadgeCheck size={15} /> Ready to email</div>
                   <h3 data-testid="text-entry-review-item" className="mt-5 font-display text-[23px] font-bold leading-tight tracking-[-.04em]">{review.itemName}</h3>
                   <p className="mt-1 font-mono text-[11px] text-muted-foreground">{review.supplierName} · {review.supplierId}</p>
                   <div className="mt-5 border-t border-[#d6e0d5] pt-4">
                     <div className="flex items-baseline justify-between gap-3"><span className="text-[11px] text-muted-foreground">Unit price</span><span data-testid="text-entry-review-price" className="font-mono text-[20px] font-medium text-[#344f45]">${review.price}</span></div>
                     <div className="mt-3 flex items-baseline justify-between gap-3"><span className="text-[11px] text-muted-foreground">Payment terms</span><span data-testid="text-entry-review-terms" className="text-right font-mono text-[11px] font-medium text-[#705f3e]">{review.paymentTerms}</span></div>
                   </div>
-                  <p className="mt-5 text-[11px] leading-5 text-[#65756c]">This is a local review only. Nothing has been saved or submitted.</p>
+                  <p className="mt-5 text-[11px] leading-5 text-[#65756c]">Nothing is saved. The next step emails this summary to shreckengost@gmail.com.</p>
+                  {emailError && <p data-testid="text-entry-email-error" role="alert" className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2.5 text-[11px] leading-5 text-destructive">{emailError}</p>}
+                  {emailSentTo && <p data-testid="text-entry-email-success" role="status" className="mt-4 flex items-center gap-2 rounded-lg border border-[#d6e0d5] bg-[#f4f6f0] px-3 py-2.5 text-[11px] font-semibold text-[#3d6257]"><BadgeCheck size={15} /> Sent to {emailSentTo}</p>}
+                  <button type="button" data-testid="button-send-entry-email" onClick={sendReviewedEntry} disabled={sendEmailMutation.isPending || Boolean(emailSentTo)} className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-[12px] font-semibold text-primary-foreground shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60">
+                    {sendEmailMutation.isPending ? <LoaderCircle size={15} className="animate-spin" /> : emailSentTo ? <Check size={15} /> : <Mail size={15} />}
+                    {sendEmailMutation.isPending ? 'Sending email…' : emailSentTo ? 'Email sent' : 'Send to shreckengost@gmail.com'}
+                  </button>
                 </div>
               ) : (
                 <div className="relative mt-5 border-t border-[#d6e0d5] pt-5">
-                  <p className="font-display text-[22px] font-bold leading-[1.12] tracking-[-.04em]">A clear reference, before the next step.</p>
-                  <p className="mt-2 text-[12px] leading-5 text-[#65756c]">Your selected supplier’s terms stay attached to this preview so they’re easy to verify.</p>
+                  <p className="font-display text-[22px] font-bold leading-[1.12] tracking-[-.04em]">Review first, then email.</p>
+                  <p className="mt-2 text-[12px] leading-5 text-[#65756c]">Your selected supplier’s terms stay attached to the preview. You choose when to send it.</p>
                   <div className="mt-6 flex items-center gap-3 rounded-lg border border-[#d6e0d5] bg-[#f4f6f0]/80 px-3 py-3">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e2eae0] text-primary"><ClipboardList size={16} /></span>
                     <span><span className="block font-mono text-[9px] uppercase tracking-[.12em] text-[#75847b]">What you’ll review</span><span className="mt-1 block text-[11px] font-semibold text-[#43594f]">Supplier · item · price · terms</span></span>
+                  </div>
+                  <div className="mt-4 flex items-center gap-2 rounded-lg border border-[#d6e0d5] bg-[#f4f6f0]/80 px-3 py-3 text-[#43594f]">
+                    <Mail size={15} className="shrink-0 text-primary" />
+                    <span className="min-w-0"><span className="block font-mono text-[9px] uppercase tracking-[.12em] text-[#75847b]">Email recipient</span><span className="mt-1 block break-all text-[11px] font-semibold">shreckengost@gmail.com</span></span>
                   </div>
                 </div>
               )}

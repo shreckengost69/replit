@@ -27,6 +27,8 @@ import type {
 import type {
   HealthStatus,
   ListSuppliersParams,
+  PurchasePriceEmailInput,
+  PurchasePriceEmailResult,
   Supplier,
   SupplierInput,
   SupplierSummary,
@@ -161,6 +163,94 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
+
+export const getSendPurchasePriceEmailUrl = () => {
+
+
+
+
+  return `/api/purchase-entry/email`
+}
+
+/**
+ * @summary Email a reviewed purchase price
+ */
+export const sendPurchasePriceEmail = async (purchasePriceEmailInput: PurchasePriceEmailInput, options?: Parameters<typeof customFetch>[1]): Promise<PurchasePriceEmailResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<PurchasePriceEmailResult>(getSendPurchasePriceEmailUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(purchasePriceEmailInput)
+  }
+);}
+
+
+
+
+
+export const getSendPurchasePriceEmailMutationKey = () => ['sendPurchasePriceEmail'] as const;
+
+export const getSendPurchasePriceEmailMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendPurchasePriceEmail>>, TError,SendPurchasePriceEmailMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendPurchasePriceEmail>>, TError,SendPurchasePriceEmailMutationVariables, TContext> => {
+
+const mutationKey = getSendPurchasePriceEmailMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendPurchasePriceEmail>>, SendPurchasePriceEmailMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendPurchasePriceEmail(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendPurchasePriceEmailMutationResult = NonNullable<Awaited<ReturnType<typeof sendPurchasePriceEmail>>>
+    export type SendPurchasePriceEmailMutationBody = BodyType<PurchasePriceEmailInput>
+    export type SendPurchasePriceEmailMutationError = ErrorType<void>
+    export type SendPurchasePriceEmailMutationVariables = {data: BodyType<PurchasePriceEmailInput>}
+
+    /**
+ * @summary Email a reviewed purchase price
+ */
+export const useSendPurchasePriceEmail = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendPurchasePriceEmail>>, TError,SendPurchasePriceEmailMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof sendPurchasePriceEmail>>,
+        TError,
+        SendPurchasePriceEmailMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSendPurchasePriceEmailMutationOptions(options), queryClient);
+    }
 
 export const getListSuppliersUrl = (params?: ListSuppliersParams,) => {
   const normalizedParams = new URLSearchParams();

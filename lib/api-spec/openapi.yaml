@@ -26,6 +26,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /purchase-entry/email:
+    post:
+      operationId: sendPurchasePriceEmail
+      tags: [suppliers]
+      summary: Email a reviewed purchase price
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchasePriceEmailInput"
+      responses:
+        "200":
+          description: Purchase price email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchasePriceEmailResult"
+        "400":
+          description: Invalid purchase price details
+        "404":
+          description: Supplier not found
+        "429":
+          description: Email send rate limit reached
+        "502":
+          description: Email delivery failed or is uncertain
   /suppliers:
     get:
       operationId: listSuppliers
@@ -298,4 +324,33 @@ components:
         - countryCount
         - paymentTerms
         - topCities
+    PurchasePriceEmailInput:
+      type: object
+      additionalProperties: false
+      properties:
+        supplierId:
+          type: string
+          minLength: 1
+          maxLength: 80
+        itemName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        price:
+          type: string
+          pattern: '^\d+(\.\d{1,2})?$'
+      required:
+        - supplierId
+        - itemName
+        - price
+    PurchasePriceEmailResult:
+      type: object
+      properties:
+        sent:
+          type: boolean
+        recipient:
+          type: string
+      required:
+        - sent
+        - recipient
 

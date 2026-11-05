@@ -69,6 +69,26 @@ export interface SupplierSummary {
   topCities: SupplierBreakdown[];
 }
 
+export interface PurchasePriceEmailInput {
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  supplierId: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  itemName: string;
+  /** @pattern ^\d+(\.\d{1,2})?$ */
+  price: string;
+}
+
+export interface PurchasePriceEmailResult {
+  sent: boolean;
+  recipient: string;
+}
+
 export type ListSuppliersParams = {
 search?: string;
 city?: string;

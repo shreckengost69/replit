@@ -18,6 +18,28 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary Email a reviewed purchase price
+ */
+export const sendPurchasePriceEmailBodySupplierIdMax = 80;
+
+export const sendPurchasePriceEmailBodyItemNameMax = 120;
+
+export const sendPurchasePriceEmailBodyPriceRegExp = new RegExp('^\\d+(\\.\\d{1,2})?$');
+
+
+export const SendPurchasePriceEmailBody = zod.object({
+  "supplierId": zod.string().min(1).max(sendPurchasePriceEmailBodySupplierIdMax),
+  "itemName": zod.string().min(1).max(sendPurchasePriceEmailBodyItemNameMax),
+  "price": zod.string().regex(sendPurchasePriceEmailBodyPriceRegExp)
+})
+
+export const SendPurchasePriceEmailResponse = zod.object({
+  "sent": zod.boolean(),
+  "recipient": zod.string()
+})
+
+
+/**
  * @summary List suppliers
  */
 export const ListSuppliersQueryParams = zod.object({
