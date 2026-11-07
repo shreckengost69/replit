@@ -535,7 +535,7 @@ function PurchaseEntry() {
             <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[.18em] text-primary">
               <span className="h-px w-7 bg-primary/60" /> Procurement workspace / item capture
             </div>
-            <h1 className="font-display text-[35px] font-bold leading-[1.04] tracking-[-.055em] sm:text-[45px]">Capture a price.</h1>
+            <h1 className="font-display text-[35px] font-bold leading-[1.04] tracking-[-.055em] sm:text-[45px]">Order Form</h1>
             <p className="mt-2 max-w-[560px] text-[14px] leading-6 text-muted-foreground">Choose a supplier, check their current terms, and email a single item reference.</p>
           </div>
           <div className="flex flex-col gap-3 rounded-xl border border-[#d9e4da] bg-[#edf2eb] px-4 py-3 text-[#3d6257] sm:flex-row sm:items-center">
