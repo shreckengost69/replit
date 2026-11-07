@@ -92,6 +92,19 @@ export interface PurchasePriceEmailInput {
 export interface PurchasePriceEmailResult {
   sent: boolean;
   recipient: string;
+  purchaseEntryId: string;
+}
+
+export type PurchaseEntryStatusStatus = typeof PurchaseEntryStatusStatus[keyof typeof PurchaseEntryStatusStatus];
+
+
+export const PurchaseEntryStatusStatus = {
+  Sent: 'Sent',
+  Ordered: 'Ordered',
+} as const;
+
+export interface PurchaseEntryStatus {
+  status: PurchaseEntryStatusStatus;
 }
 
 export type ListSuppliersParams = {

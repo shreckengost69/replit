@@ -9,4 +9,5 @@
 export interface PurchasePriceEmailResult {
   sent: boolean;
   recipient: string;
+  purchaseEntryId: string;
 }

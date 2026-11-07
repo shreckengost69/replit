@@ -27,6 +27,7 @@ import type {
 import type {
   HealthStatus,
   ListSuppliersParams,
+  PurchaseEntryStatus,
   PurchasePriceEmailInput,
   PurchasePriceEmailResult,
   Supplier,
@@ -251,6 +252,107 @@ export const useSendPurchasePriceEmail = <TError = ErrorType<void>,
       > => {
       return useMutation(getSendPurchasePriceEmailMutationOptions(options), queryClient);
     }
+
+export const getGetPurchaseEntryStatusUrl = (purchaseEntryId: string,) => {
+
+
+
+
+  return `/api/purchase-entry/${purchaseEntryId}/status`
+}
+
+/**
+ * @summary Check a purchase entry approval reply
+ */
+export const getPurchaseEntryStatus = async (purchaseEntryId: string, options?: Parameters<typeof customFetch>[1]): Promise<PurchaseEntryStatus> => {
+
+  return customFetch<PurchaseEntryStatus>(getGetPurchaseEntryStatusUrl(purchaseEntryId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPurchaseEntryStatusQueryKey = (purchaseEntryId: string,) => {
+    return [
+    `/api/purchase-entry/${purchaseEntryId}/status`
+    ] as const;
+    }
+
+
+export const getGetPurchaseEntryStatusQueryOptions = <TData = Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError = ErrorType<void>>(purchaseEntryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPurchaseEntryStatusQueryKey(purchaseEntryId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPurchaseEntryStatus>>> = ({ signal }) => getPurchaseEntryStatus(purchaseEntryId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: purchaseEntryId !== null && purchaseEntryId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPurchaseEntryStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getPurchaseEntryStatus>>>
+export type GetPurchaseEntryStatusQueryError = ErrorType<void>
+
+
+export function useGetPurchaseEntryStatus<TData = Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError = ErrorType<void>>(
+ purchaseEntryId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseEntryStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseEntryStatus>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseEntryStatus<TData = Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError = ErrorType<void>>(
+ purchaseEntryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPurchaseEntryStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getPurchaseEntryStatus>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPurchaseEntryStatus<TData = Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError = ErrorType<void>>(
+ purchaseEntryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Check a purchase entry approval reply
+ */
+
+export function useGetPurchaseEntryStatus<TData = Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError = ErrorType<void>>(
+ purchaseEntryId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPurchaseEntryStatus>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPurchaseEntryStatusQueryOptions(purchaseEntryId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListSuppliersUrl = (params?: ListSuppliersParams,) => {
   const normalizedParams = new URLSearchParams();

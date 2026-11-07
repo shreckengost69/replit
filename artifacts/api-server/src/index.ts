@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { startPurchaseEntryReplyMonitor } from "./routes/purchase-entry";
 
 const rawPort = process.env["PORT"];
 
@@ -10,6 +11,7 @@ if (!rawPort) {
 }
 
 const port = Number(rawPort);
+startPurchaseEntryReplyMonitor();
 
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);

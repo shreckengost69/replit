@@ -15,6 +15,7 @@ import {
   getListSuppliersQueryKey,
   useCreateSupplier,
   useDeleteSupplier,
+  useGetPurchaseEntryStatus,
   useGetSupplier,
   useGetSupplierSummary,
   useListSuppliers,
@@ -459,7 +460,15 @@ function getEmailDeliveryError(error: unknown) {
 function PurchaseEntry() {
   const suppliersQuery = useListSuppliers();
   const sendEmailMutation = useSendPurchasePriceEmail();
-  const [status, setStatus] = useState<'Draft' | 'Sent'>('Draft');
+  const [status, setStatus] = useState<'Draft' | 'Sent' | 'Ordered'>('Draft');
+  const [purchaseEntryId, setPurchaseEntryId] = useState(() => window.localStorage.getItem('supplier-hub.purchase-entry-id') ?? '');
+  const purchaseStatusQuery = useGetPurchaseEntryStatus(purchaseEntryId, {
+    query: {
+      enabled: Boolean(purchaseEntryId),
+      refetchInterval: 15_000,
+      refetchOnWindowFocus: true,
+    },
+  });
   const [supplierId, setSupplierId] = useState('');
   const [itemName, setItemName] = useState('');
   const [price, setPrice] = useState('');
@@ -472,11 +481,17 @@ function PurchaseEntry() {
 
   const clearReviewState = () => {
     setStatus('Draft');
+    setPurchaseEntryId('');
+    window.localStorage.removeItem('supplier-hub.purchase-entry-id');
     setReview(null);
     setEmailSentTo('');
     setEmailError('');
     sendEmailMutation.reset();
   };
+
+  useEffect(() => {
+    if (purchaseStatusQuery.data) setStatus(purchaseStatusQuery.data.status);
+  }, [purchaseStatusQuery.data]);
 
   const submitEntry = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -512,7 +527,11 @@ function PurchaseEntry() {
     sendEmailMutation.mutate(
       { data: { supplierId: review.supplierId, itemName: review.itemName, price: review.price } },
       {
-        onSuccess: (result) => setEmailSentTo(result.recipient),
+        onSuccess: (result) => {
+          setEmailSentTo(result.recipient);
+          setPurchaseEntryId(result.purchaseEntryId);
+          window.localStorage.setItem('supplier-hub.purchase-entry-id', result.purchaseEntryId);
+        },
         onError: (error) => setEmailError(getEmailDeliveryError(error)),
       },
     );
@@ -541,7 +560,7 @@ function PurchaseEntry() {
           <div className="flex flex-col gap-3 rounded-xl border border-[#d9e4da] bg-[#edf2eb] px-4 py-3 text-[#3d6257] sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
               <ClipboardList size={18} />
-              <span><span className="block font-mono text-[9px] uppercase tracking-[.14em]">Entry mode</span><span className="mt-0.5 block text-[12px] font-semibold">Review then email · not saved</span></span>
+              <span><span className="block font-mono text-[9px] uppercase tracking-[.14em]">Entry mode</span><span className="mt-0.5 block text-[12px] font-semibold">Review then email · reply tracked</span></span>
             </div>
             <label className="flex items-center gap-2 border-t border-[#d9e4da] pt-3 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
               <span className="font-mono text-[9px] uppercase tracking-[.14em]">Status</span>
@@ -650,7 +669,7 @@ function PurchaseEntry() {
                     <div className="flex items-baseline justify-between gap-3"><span className="text-[11px] text-muted-foreground">Unit price</span><span data-testid="text-entry-review-price" className="font-mono text-[20px] font-medium text-[#344f45]">${review.price}</span></div>
                     <div className="mt-3 flex items-baseline justify-between gap-3"><span className="text-[11px] text-muted-foreground">Payment terms</span><span data-testid="text-entry-review-terms" className="text-right font-mono text-[11px] font-medium text-[#705f3e]">{review.paymentTerms}</span></div>
                   </div>
-                  <p className="mt-5 text-[11px] leading-5 text-[#65756c]">Nothing is saved. The next step emails this summary to shreckengost@gmail.com.</p>
+                  <p className="mt-5 text-[11px] leading-5 text-[#65756c]">After sending, this entry is tracked. An “approved” reply updates its status to Ordered.</p>
                   {emailError && <p data-testid="text-entry-email-error" role="alert" className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2.5 text-[11px] leading-5 text-destructive">{emailError}</p>}
                   {emailSentTo && <p data-testid="text-entry-email-success" role="status" className="mt-4 flex items-center gap-2 rounded-lg border border-[#d6e0d5] bg-[#f4f6f0] px-3 py-2.5 text-[11px] font-semibold text-[#3d6257]"><BadgeCheck size={15} /> Sent to {emailSentTo}</p>}
                   <button type="button" data-testid="button-send-entry-email" onClick={sendReviewedEntry} disabled={sendEmailMutation.isPending || Boolean(emailSentTo)} className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-[12px] font-semibold text-primary-foreground shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60">

@@ -35,7 +35,20 @@ export const SendPurchasePriceEmailBody = zod.object({
 
 export const SendPurchasePriceEmailResponse = zod.object({
   "sent": zod.boolean(),
-  "recipient": zod.string()
+  "recipient": zod.string(),
+  "purchaseEntryId": zod.string().uuid()
+})
+
+
+/**
+ * @summary Check a purchase entry approval reply
+ */
+export const GetPurchaseEntryStatusParams = zod.object({
+  "purchaseEntryId": zod.coerce.string().uuid()
+})
+
+export const GetPurchaseEntryStatusResponse = zod.object({
+  "status": zod.enum(['Sent', 'Ordered'])
 })
 
 

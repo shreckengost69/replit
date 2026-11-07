@@ -52,6 +52,29 @@ paths:
           description: Email send rate limit reached
         "502":
           description: Email delivery failed or is uncertain
+  /purchase-entry/{purchaseEntryId}/status:
+    get:
+      operationId: getPurchaseEntryStatus
+      tags: [suppliers]
+      summary: Check a purchase entry approval reply
+      parameters:
+        - name: purchaseEntryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Current purchase entry status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseEntryStatus"
+        "404":
+          description: Purchase entry not found
+        "502":
+          description: Gmail reply status could not be checked
   /suppliers:
     get:
       operationId: listSuppliers
@@ -364,7 +387,18 @@ components:
           type: boolean
         recipient:
           type: string
+        purchaseEntryId:
+          type: string
+          format: uuid
       required:
         - sent
         - recipient
+        - purchaseEntryId
+    PurchaseEntryStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [Sent, Ordered]
+      required: [status]
 
