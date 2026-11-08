@@ -27,6 +27,7 @@ import type {
 import type {
   HealthStatus,
   ListSuppliersParams,
+  PurchaseEntryHistoryItem,
   PurchaseEntryStatus,
   PurchasePriceEmailInput,
   PurchasePriceEmailResult,
@@ -252,6 +253,107 @@ export const useSendPurchasePriceEmail = <TError = ErrorType<void>,
       > => {
       return useMutation(getSendPurchasePriceEmailMutationOptions(options), queryClient);
     }
+
+export const getListPurchaseEntriesUrl = () => {
+
+
+
+
+  return `/api/purchase-entry`
+}
+
+/**
+ * @summary List recent emailed purchase entries
+ */
+export const listPurchaseEntries = async ( options?: Parameters<typeof customFetch>[1]): Promise<PurchaseEntryHistoryItem[]> => {
+
+  return customFetch<PurchaseEntryHistoryItem[]>(getListPurchaseEntriesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPurchaseEntriesQueryKey = () => {
+    return [
+    `/api/purchase-entry`
+    ] as const;
+    }
+
+
+export const getListPurchaseEntriesQueryOptions = <TData = Awaited<ReturnType<typeof listPurchaseEntries>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseEntries>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPurchaseEntriesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPurchaseEntries>>> = ({ signal }) => listPurchaseEntries({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPurchaseEntries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPurchaseEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof listPurchaseEntries>>>
+export type ListPurchaseEntriesQueryError = ErrorType<unknown>
+
+
+export function useListPurchaseEntries<TData = Awaited<ReturnType<typeof listPurchaseEntries>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseEntries>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchaseEntries<TData = Awaited<ReturnType<typeof listPurchaseEntries>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseEntries>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPurchaseEntries>>,
+          TError,
+          Awaited<ReturnType<typeof listPurchaseEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPurchaseEntries<TData = Awaited<ReturnType<typeof listPurchaseEntries>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseEntries>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List recent emailed purchase entries
+ */
+
+export function useListPurchaseEntries<TData = Awaited<ReturnType<typeof listPurchaseEntries>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPurchaseEntries>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPurchaseEntriesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetPurchaseEntryStatusUrl = (purchaseEntryId: string,) => {
 

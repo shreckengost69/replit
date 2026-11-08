@@ -1,9 +1,10 @@
 import { Router, type IRouter } from "express";
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { ReplitConnectors } from "@replit/connectors-sdk";
 import {
   GetPurchaseEntryStatusParams,
   GetPurchaseEntryStatusResponse,
+  ListPurchaseEntriesResponse,
   SendPurchasePriceEmailBody,
   SendPurchasePriceEmailResponse,
 } from "@workspace/api-zod";
@@ -163,6 +164,29 @@ export function startPurchaseEntryReplyMonitor() {
   setTimeout(() => void poll(), 5_000);
   setInterval(() => void poll(), replyPollIntervalMs);
 }
+
+router.get("/purchase-entry", async (_req, res): Promise<void> => {
+  const entries = await db
+    .select({
+      id: purchaseEntriesTable.id,
+      supplierId: purchaseEntriesTable.supplierId,
+      supplierName: purchaseEntriesTable.supplierName,
+      itemName: purchaseEntriesTable.itemName,
+      price: purchaseEntriesTable.price,
+      recipient: purchaseEntriesTable.recipient,
+      status: purchaseEntriesTable.status,
+      createdAt: purchaseEntriesTable.createdAt,
+    })
+    .from(purchaseEntriesTable)
+    .orderBy(desc(purchaseEntriesTable.createdAt))
+    .limit(50);
+
+  res.json(
+    ListPurchaseEntriesResponse.parse(
+      entries.map((entry) => ({ ...entry, createdAt: entry.createdAt.toISOString() })),
+    ),
+  );
+});
 
 router.post("/purchase-entry/email", async (req, res): Promise<void> => {
   const parsed = SendPurchasePriceEmailBody.safeParse(req.body);

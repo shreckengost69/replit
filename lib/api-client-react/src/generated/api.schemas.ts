@@ -107,6 +107,25 @@ export interface PurchaseEntryStatus {
   status: PurchaseEntryStatusStatus;
 }
 
+export type PurchaseEntryHistoryItemStatus = typeof PurchaseEntryHistoryItemStatus[keyof typeof PurchaseEntryHistoryItemStatus];
+
+
+export const PurchaseEntryHistoryItemStatus = {
+  Sent: 'Sent',
+  Approved: 'Approved',
+} as const;
+
+export interface PurchaseEntryHistoryItem {
+  id: string;
+  supplierId: string;
+  supplierName: string;
+  itemName: string;
+  price: string;
+  recipient: string;
+  status: PurchaseEntryHistoryItemStatus;
+  createdAt: string;
+}
+
 export type ListSuppliersParams = {
 search?: string;
 city?: string;

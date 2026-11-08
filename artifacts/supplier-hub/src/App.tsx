@@ -7,7 +7,7 @@ import NotFound from '@/pages/not-found';
 import {
   ArrowLeft, ArrowUpDown, BadgeCheck, Building2, Check, ChevronRight,
   CircleAlert, ClipboardList, Compass, FilePlus2, Globe2, LoaderCircle, Mail, MapPin,
-  Package, Pencil, Plus, Search, SlidersHorizontal, Trash2, UsersRound, X,
+  Package, Pencil, Plus, RefreshCw, Search, SlidersHorizontal, Trash2, UsersRound, X,
 } from 'lucide-react';
 import {
   getGetSupplierQueryKey,
@@ -18,6 +18,7 @@ import {
   useGetPurchaseEntryStatus,
   useGetSupplier,
   useGetSupplierSummary,
+  useListPurchaseEntries,
   useListSuppliers,
   useSendPurchasePriceEmail,
   useUpdateSupplier,
@@ -459,6 +460,9 @@ function getEmailDeliveryError(error: unknown) {
 
 function PurchaseEntry() {
   const suppliersQuery = useListSuppliers();
+  const historyQuery = useListPurchaseEntries({
+    query: { refetchInterval: 30_000, refetchOnWindowFocus: true },
+  });
   const sendEmailMutation = useSendPurchasePriceEmail();
   const [status, setStatus] = useState<'Draft' | 'Sent' | 'Approved'>('Draft');
   const [purchaseEntryId, setPurchaseEntryId] = useState(() => window.localStorage.getItem('supplier-hub.purchase-entry-id') ?? '');
@@ -532,6 +536,7 @@ function PurchaseEntry() {
           setEmailSentTo(result.recipient);
           setPurchaseEntryId(result.purchaseEntryId);
           window.localStorage.setItem('supplier-hub.purchase-entry-id', result.purchaseEntryId);
+          void historyQuery.refetch();
         },
         onError: (error) => setEmailError(getEmailDeliveryError(error)),
       },
@@ -700,6 +705,59 @@ function PurchaseEntry() {
             </section>
           </aside>
         </div>
+        <section data-testid="section-purchase-history" className="mt-5 overflow-hidden rounded-2xl border border-border bg-card">
+          <header className="flex flex-col gap-3 border-b border-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+            <div>
+              <p className="font-mono text-[9px] uppercase tracking-[.16em] text-primary">Order activity</p>
+              <h2 className="mt-1 font-display text-[21px] font-bold tracking-[-.04em]">Purchase history</h2>
+              <p className="mt-1 text-[12px] text-muted-foreground">Recently emailed entries and their current approval status.</p>
+            </div>
+            <button
+              type="button"
+              data-testid="button-refresh-purchase-history"
+              onClick={() => historyQuery.refetch()}
+              disabled={historyQuery.isFetching}
+              className="inline-flex h-9 items-center justify-center gap-2 self-start rounded-lg border border-border px-3 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted disabled:opacity-60 sm:self-center"
+            >
+              <RefreshCw size={13} className={historyQuery.isFetching ? 'animate-spin' : ''} />
+              Refresh
+            </button>
+          </header>
+          {historyQuery.isPending ? (
+            <p className="px-5 py-8 text-center text-[12px] text-muted-foreground">Loading purchase history…</p>
+          ) : historyQuery.isError ? (
+            <div className="flex flex-col items-center gap-3 px-5 py-8 text-center">
+              <p role="alert" className="text-[12px] text-destructive">Purchase history couldn’t be loaded.</p>
+              <button type="button" onClick={() => historyQuery.refetch()} className="rounded-md border border-border px-3 py-2 text-[11px] font-semibold hover:bg-muted">Try again</button>
+            </div>
+          ) : historyQuery.data?.length ? (
+            <ul className="divide-y divide-border">
+              {historyQuery.data.map((entry) => (
+                <li key={entry.id} data-testid={`history-entry-${entry.id}`} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_130px_190px] sm:items-center sm:px-7">
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-semibold">{entry.itemName}</p>
+                    <p className="mt-1 truncate text-[11px] text-muted-foreground">{entry.supplierName} · {entry.supplierId}</p>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 sm:block">
+                    <span className="font-mono text-[14px] font-semibold">${Number(entry.price).toFixed(2)}</span>
+                    <span
+                      data-testid={`history-status-${entry.id}`}
+                      className={`inline-flex rounded-full px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-[.08em] ${entry.status === 'Approved' ? 'bg-[#dfe9df] text-[#3d6257]' : 'bg-[#f4f1e6] text-[#796a47]'}`}
+                    >
+                      {entry.status}
+                    </span>
+                  </div>
+                  <div className="min-w-0 text-[10px] leading-5 text-muted-foreground sm:text-right">
+                    <p className="truncate">To {entry.recipient}</p>
+                    <p>{new Date(entry.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="px-5 py-8 text-center text-[12px] text-muted-foreground">No emailed purchase entries yet. They’ll appear here after you send one.</p>
+          )}
+        </section>
       </div>
     </AppFrame>
   );

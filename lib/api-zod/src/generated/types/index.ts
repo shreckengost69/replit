@@ -10,6 +10,8 @@ export * from './healthStatus';
 export * from './listSuppliersParams';
 export * from './listSuppliersSortBy';
 export * from './listSuppliersSortOrder';
+export * from './purchaseEntryHistoryItem';
+export * from './purchaseEntryHistoryItemStatus';
 export * from './purchaseEntryStatus';
 export * from './purchaseEntryStatusStatus';
 export * from './purchasePriceEmailInput';

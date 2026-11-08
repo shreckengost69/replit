@@ -52,6 +52,20 @@ paths:
           description: Email send rate limit reached
         "502":
           description: Email delivery failed or is uncertain
+  /purchase-entry:
+    get:
+      operationId: listPurchaseEntries
+      tags: [suppliers]
+      summary: List recent emailed purchase entries
+      responses:
+        "200":
+          description: Recent purchase entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PurchaseEntryHistoryItem"
   /purchase-entry/{purchaseEntryId}/status:
     get:
       operationId: getPurchaseEntryStatus
@@ -401,4 +415,36 @@ components:
           type: string
           enum: [Sent, Approved]
       required: [status]
+    PurchaseEntryHistoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        supplierId:
+          type: string
+        supplierName:
+          type: string
+        itemName:
+          type: string
+        price:
+          type: string
+        recipient:
+          type: string
+          format: email
+        status:
+          type: string
+          enum: [Sent, Approved]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - supplierId
+        - supplierName
+        - itemName
+        - price
+        - recipient
+        - status
+        - createdAt
 
