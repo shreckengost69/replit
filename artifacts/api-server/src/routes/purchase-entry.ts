@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { randomBytes } from "node:crypto";
 import { asc, desc, eq } from "drizzle-orm";
 import { ReplitConnectors } from "@replit/connectors-sdk";
 import {
@@ -173,6 +174,7 @@ router.get("/purchase-entry", async (_req, res): Promise<void> => {
       supplierName: purchaseEntriesTable.supplierName,
       itemName: purchaseEntriesTable.itemName,
       price: purchaseEntriesTable.price,
+      orderNumber: purchaseEntriesTable.orderNumber,
       recipient: purchaseEntriesTable.recipient,
       status: purchaseEntriesTable.status,
       createdAt: purchaseEntriesTable.createdAt,
@@ -221,9 +223,11 @@ router.post("/purchase-entry/email", async (req, res): Promise<void> => {
 
   const itemName = parsed.data.itemName.trim().replace(/[\r\n]+/g, " ");
   const price = Number(parsed.data.price).toFixed(2);
+  const orderNumber = `ORD-${new Date().getFullYear()}-${randomBytes(8).toString("hex").toUpperCase()}`;
   const emailBody = [
     "Capture a price",
     "",
+    `Order Number: ${orderNumber}`,
     `Supplier: ${supplier.supplierName} (${supplier.supplierId})`,
     `Item: ${itemName}`,
     `Unit price: $${price}`,
@@ -289,6 +293,7 @@ router.post("/purchase-entry/email", async (req, res): Promise<void> => {
         supplierName: supplier.supplierName,
         itemName,
         price,
+        orderNumber,
         recipient,
         gmailThreadId,
         status: "Sent",
@@ -299,6 +304,7 @@ router.post("/purchase-entry/email", async (req, res): Promise<void> => {
       SendPurchasePriceEmailResponse.parse({
         sent: true,
         recipient,
+        orderNumber,
         purchaseEntryId: entry.id,
       }),
     );
@@ -320,7 +326,10 @@ router.get("/purchase-entry/:purchaseEntryId/status", async (req, res): Promise<
     return;
   }
   const [entry] = await db
-    .select({ status: purchaseEntriesTable.status })
+    .select({
+      status: purchaseEntriesTable.status,
+      orderNumber: purchaseEntriesTable.orderNumber,
+    })
     .from(purchaseEntriesTable)
     .where(eq(purchaseEntriesTable.id, parsed.data.purchaseEntryId))
     .limit(1);
@@ -328,7 +337,7 @@ router.get("/purchase-entry/:purchaseEntryId/status", async (req, res): Promise<
     res.status(404).json({ error: "Purchase entry not found." });
     return;
   }
-  res.json(GetPurchaseEntryStatusResponse.parse({ status: entry.status }));
+  res.json(GetPurchaseEntryStatusResponse.parse({ status: entry.status, orderNumber: entry.orderNumber }));
 });
 
 export default router;

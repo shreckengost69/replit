@@ -8,6 +8,7 @@ export const purchaseEntriesTable = pgTable("purchase_entries", {
   supplierName: text("supplier_name").notNull(),
   itemName: text("item_name").notNull(),
   price: text("price").notNull(),
+  orderNumber: text("order_number"),
   recipient: text("recipient").notNull(),
   gmailThreadId: text("gmail_thread_id").notNull().unique(),
   status: text("status").notNull().default("Sent"),

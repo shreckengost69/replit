@@ -92,6 +92,7 @@ export interface PurchasePriceEmailInput {
 export interface PurchasePriceEmailResult {
   sent: boolean;
   recipient: string;
+  orderNumber: string;
   purchaseEntryId: string;
 }
 
@@ -105,6 +106,8 @@ export const PurchaseEntryStatusStatus = {
 
 export interface PurchaseEntryStatus {
   status: PurchaseEntryStatusStatus;
+  /** @nullable */
+  orderNumber: string | null;
 }
 
 export type PurchaseEntryHistoryItemStatus = typeof PurchaseEntryHistoryItemStatus[keyof typeof PurchaseEntryHistoryItemStatus];
@@ -121,6 +124,8 @@ export interface PurchaseEntryHistoryItem {
   supplierName: string;
   itemName: string;
   price: string;
+  /** @nullable */
+  orderNumber: string | null;
   recipient: string;
   status: PurchaseEntryHistoryItemStatus;
   createdAt: string;

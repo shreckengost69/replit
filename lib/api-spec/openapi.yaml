@@ -401,12 +401,15 @@ components:
           type: boolean
         recipient:
           type: string
+        orderNumber:
+          type: string
         purchaseEntryId:
           type: string
           format: uuid
       required:
         - sent
         - recipient
+        - orderNumber
         - purchaseEntryId
     PurchaseEntryStatus:
       type: object
@@ -414,7 +417,9 @@ components:
         status:
           type: string
           enum: [Sent, Approved]
-      required: [status]
+        orderNumber:
+          type: ["string", "null"]
+      required: [status, orderNumber]
     PurchaseEntryHistoryItem:
       type: object
       properties:
@@ -429,6 +434,8 @@ components:
           type: string
         price:
           type: string
+        orderNumber:
+          type: ["string", "null"]
         recipient:
           type: string
           format: email
@@ -444,6 +451,7 @@ components:
         - supplierName
         - itemName
         - price
+        - orderNumber
         - recipient
         - status
         - createdAt

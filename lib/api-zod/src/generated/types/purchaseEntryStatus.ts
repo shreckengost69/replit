@@ -9,4 +9,6 @@ import type { PurchaseEntryStatusStatus } from './purchaseEntryStatusStatus';
 
 export interface PurchaseEntryStatus {
   status: PurchaseEntryStatusStatus;
+  /** @nullable */
+  orderNumber: string | null;
 }

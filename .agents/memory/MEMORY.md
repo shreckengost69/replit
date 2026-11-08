@@ -1,0 +1,1 @@
+- [Purchase order numbers](purchase-order-numbers.md) — order numbers use random IDs; preserve existing rows if adding a database uniqueness constraint.

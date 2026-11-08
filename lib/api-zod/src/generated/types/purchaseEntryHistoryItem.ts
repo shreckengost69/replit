@@ -13,6 +13,8 @@ export interface PurchaseEntryHistoryItem {
   supplierName: string;
   itemName: string;
   price: string;
+  /** @nullable */
+  orderNumber: string | null;
   recipient: string;
   status: PurchaseEntryHistoryItemStatus;
   createdAt: Date;

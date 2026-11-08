@@ -466,6 +466,7 @@ function PurchaseEntry() {
   const sendEmailMutation = useSendPurchasePriceEmail();
   const [status, setStatus] = useState<'Draft' | 'Sent' | 'Approved'>('Draft');
   const [purchaseEntryId, setPurchaseEntryId] = useState(() => window.localStorage.getItem('supplier-hub.purchase-entry-id') ?? '');
+  const [orderNumber, setOrderNumber] = useState(() => window.localStorage.getItem('supplier-hub.order-number') ?? '');
   const purchaseStatusQuery = useGetPurchaseEntryStatus(purchaseEntryId, {
     query: {
       enabled: Boolean(purchaseEntryId),
@@ -486,7 +487,9 @@ function PurchaseEntry() {
   const clearReviewState = () => {
     setStatus('Draft');
     setPurchaseEntryId('');
+    setOrderNumber('');
     window.localStorage.removeItem('supplier-hub.purchase-entry-id');
+    window.localStorage.removeItem('supplier-hub.order-number');
     setReview(null);
     setEmailSentTo('');
     setEmailError('');
@@ -494,7 +497,10 @@ function PurchaseEntry() {
   };
 
   useEffect(() => {
-    if (purchaseStatusQuery.data) setStatus(purchaseStatusQuery.data.status);
+    if (purchaseStatusQuery.data) {
+      setStatus(purchaseStatusQuery.data.status);
+      setOrderNumber(purchaseStatusQuery.data.orderNumber ?? '');
+    }
   }, [purchaseStatusQuery.data]);
 
   const submitEntry = (event: FormEvent<HTMLFormElement>) => {
@@ -535,7 +541,9 @@ function PurchaseEntry() {
         onSuccess: (result) => {
           setEmailSentTo(result.recipient);
           setPurchaseEntryId(result.purchaseEntryId);
+          setOrderNumber(result.orderNumber);
           window.localStorage.setItem('supplier-hub.purchase-entry-id', result.purchaseEntryId);
+          window.localStorage.setItem('supplier-hub.order-number', result.orderNumber);
           void historyQuery.refetch();
         },
         onError: (error) => setEmailError(getEmailDeliveryError(error)),
@@ -568,16 +576,29 @@ function PurchaseEntry() {
               <ClipboardList size={18} />
               <span><span className="block font-mono text-[9px] uppercase tracking-[.14em]">Entry mode</span><span className="mt-0.5 block text-[12px] font-semibold">Review then email · reply tracked</span></span>
             </div>
-            <label className="flex items-center gap-2 border-t border-[#d9e4da] pt-3 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
-              <span className="font-mono text-[9px] uppercase tracking-[.14em]">Status</span>
-              <input
-                data-testid="input-entry-status"
-                aria-label="Status (read only)"
-                readOnly
-                value={status}
-                className="h-8 w-[112px] cursor-default rounded-md border border-[#c8d6c8] bg-white/70 px-2 text-[11px] font-semibold text-[#3d6257] outline-none"
-              />
-            </label>
+            <div className="grid grid-cols-2 gap-3 border-t border-[#d9e4da] pt-3 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
+              <label className="flex flex-col gap-1">
+                <span className="font-mono text-[9px] uppercase tracking-[.14em]">Status</span>
+                <input
+                  data-testid="input-entry-status"
+                  aria-label="Status (read only)"
+                  readOnly
+                  value={status}
+                  className="h-8 w-[112px] max-w-full cursor-default rounded-md border border-[#c8d6c8] bg-white/70 px-2 text-[11px] font-semibold text-[#3d6257] outline-none"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="font-mono text-[9px] uppercase tracking-[.14em]">Order Number</span>
+                <input
+                  data-testid="input-entry-order-number"
+                  aria-label="Order Number (read only)"
+                  readOnly
+                  value={orderNumber}
+                  placeholder="Assigned after send"
+                  className="h-8 w-[164px] max-w-full cursor-default rounded-md border border-[#c8d6c8] bg-white/70 px-2 font-mono text-[10px] font-semibold text-[#3d6257] outline-none placeholder:font-sans placeholder:font-normal placeholder:text-muted-foreground"
+                />
+              </label>
+            </div>
           </div>
         </div>
 
@@ -675,7 +696,7 @@ function PurchaseEntry() {
                     <div className="flex items-baseline justify-between gap-3"><span className="text-[11px] text-muted-foreground">Unit price</span><span data-testid="text-entry-review-price" className="font-mono text-[20px] font-medium text-[#344f45]">${review.price}</span></div>
                     <div className="mt-3 flex items-baseline justify-between gap-3"><span className="text-[11px] text-muted-foreground">Payment terms</span><span data-testid="text-entry-review-terms" className="text-right font-mono text-[11px] font-medium text-[#705f3e]">{review.paymentTerms}</span></div>
                   </div>
-                  <p className="mt-5 text-[11px] leading-5 text-[#65756c]">After sending, this entry is tracked. An “approved” reply updates its status to Approved.</p>
+                  <p className="mt-5 text-[11px] leading-5 text-[#65756c]">An Order Number is added to the email and shown here after sending. An “approved” reply updates its status to Approved.</p>
                   {emailError && <p data-testid="text-entry-email-error" role="alert" className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2.5 text-[11px] leading-5 text-destructive">{emailError}</p>}
                   {emailSentTo && <p data-testid="text-entry-email-success" role="status" className="mt-4 flex items-center gap-2 rounded-lg border border-[#d6e0d5] bg-[#f4f6f0] px-3 py-2.5 text-[11px] font-semibold text-[#3d6257]"><BadgeCheck size={15} /> Sent to {emailSentTo}</p>}
                   <button type="button" data-testid="button-send-entry-email" onClick={sendReviewedEntry} disabled={sendEmailMutation.isPending || Boolean(emailSentTo)} className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-[12px] font-semibold text-primary-foreground shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60">
@@ -737,6 +758,7 @@ function PurchaseEntry() {
                   <div className="min-w-0">
                     <p className="truncate text-[13px] font-semibold">{entry.itemName}</p>
                     <p className="mt-1 truncate text-[11px] text-muted-foreground">{entry.supplierName} · {entry.supplierId}</p>
+                    {entry.orderNumber && <p className="mt-1 font-mono text-[10px] text-[#705f3e]">{entry.orderNumber}</p>}
                   </div>
                   <div className="flex items-center justify-between gap-3 sm:block">
                     <span className="font-mono text-[14px] font-semibold">${Number(entry.price).toFixed(2)}</span>

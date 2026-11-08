@@ -36,6 +36,7 @@ export const SendPurchasePriceEmailBody = zod.object({
 export const SendPurchasePriceEmailResponse = zod.object({
   "sent": zod.boolean(),
   "recipient": zod.string(),
+  "orderNumber": zod.string(),
   "purchaseEntryId": zod.string().uuid()
 })
 
@@ -49,6 +50,7 @@ export const ListPurchaseEntriesResponseItem = zod.object({
   "supplierName": zod.string(),
   "itemName": zod.string(),
   "price": zod.string(),
+  "orderNumber": zod.string().nullable(),
   "recipient": zod.string().email(),
   "status": zod.enum(['Sent', 'Approved']),
   "createdAt": zod.coerce.date()
@@ -64,7 +66,8 @@ export const GetPurchaseEntryStatusParams = zod.object({
 })
 
 export const GetPurchaseEntryStatusResponse = zod.object({
-  "status": zod.enum(['Sent', 'Approved'])
+  "status": zod.enum(['Sent', 'Approved']),
+  "orderNumber": zod.string().nullable()
 })
 
 
