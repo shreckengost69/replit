@@ -239,7 +239,7 @@ router.post("/purchase-entry/email", async (req, res): Promise<void> => {
     ?.join("\r\n") ?? "";
   const rawMessage = [
     `To: ${recipient}`,
-    "Subject: Capture a price",
+    `Subject: Purchase price request - ${orderNumber}`,
     "MIME-Version: 1.0",
     "Content-Type: text/plain; charset=UTF-8",
     "Content-Transfer-Encoding: base64",
