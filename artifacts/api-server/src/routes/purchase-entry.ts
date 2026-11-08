@@ -88,7 +88,7 @@ async function checkPurchaseEntryReply(purchaseEntryId: string) {
     .from(purchaseEntriesTable)
     .where(eq(purchaseEntriesTable.id, purchaseEntryId))
     .limit(1);
-  if (!entry || entry.status === "Ordered") return entry;
+  if (!entry || entry.status === "Approved") return entry;
 
   const response = await connectors.proxy(
     "google-mail",
@@ -125,7 +125,7 @@ async function checkPurchaseEntryReply(purchaseEntryId: string) {
   if (!approvedReply) return entry;
   const [updated] = await db
     .update(purchaseEntriesTable)
-    .set({ status: "Ordered" })
+    .set({ status: "Approved" })
     .where(eq(purchaseEntriesTable.id, purchaseEntryId))
     .returning();
   return updated ?? entry;

@@ -399,6 +399,6 @@ components:
       properties:
         status:
           type: string
-          enum: [Sent, Ordered]
+          enum: [Sent, Approved]
       required: [status]
 

@@ -11,5 +11,5 @@ export type PurchaseEntryStatusStatus = typeof PurchaseEntryStatusStatus[keyof t
 
 export const PurchaseEntryStatusStatus = {
   Sent: 'Sent',
-  Ordered: 'Ordered',
+  Approved: 'Approved',
 } as const;

@@ -48,7 +48,7 @@ export const GetPurchaseEntryStatusParams = zod.object({
 })
 
 export const GetPurchaseEntryStatusResponse = zod.object({
-  "status": zod.enum(['Sent', 'Ordered'])
+  "status": zod.enum(['Sent', 'Approved'])
 })
 
 
