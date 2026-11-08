@@ -447,7 +447,7 @@ function Detail() {
   );
 }
 
-type EntryReview = { supplierName: string; supplierId: string; paymentTerms: string; itemName: string; price: string };
+type EntryReview = { supplierName: string; supplierId: string; contact: string; paymentTerms: string; itemName: string; price: string };
 
 function getEmailDeliveryError(error: unknown) {
   if (typeof error === 'object' && error !== null && 'data' in error) {
@@ -514,6 +514,7 @@ function PurchaseEntry() {
     setReview({
       supplierName: selectedSupplier.supplierName,
       supplierId: selectedSupplier.supplierId,
+      contact: selectedSupplier.contact,
       paymentTerms: selectedSupplier.paymentTerms,
       itemName: itemName.trim(),
       price: amount.toFixed(2),
@@ -674,7 +675,7 @@ function PurchaseEntry() {
                   {emailSentTo && <p data-testid="text-entry-email-success" role="status" className="mt-4 flex items-center gap-2 rounded-lg border border-[#d6e0d5] bg-[#f4f6f0] px-3 py-2.5 text-[11px] font-semibold text-[#3d6257]"><BadgeCheck size={15} /> Sent to {emailSentTo}</p>}
                   <button type="button" data-testid="button-send-entry-email" onClick={sendReviewedEntry} disabled={sendEmailMutation.isPending || Boolean(emailSentTo)} className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-[12px] font-semibold text-primary-foreground shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60">
                     {sendEmailMutation.isPending ? <LoaderCircle size={15} className="animate-spin" /> : emailSentTo ? <Check size={15} /> : <Mail size={15} />}
-                    {sendEmailMutation.isPending ? 'Sending email…' : emailSentTo ? 'Email sent' : 'Send to shreckengost@gmail.com'}
+                    {sendEmailMutation.isPending ? 'Sending email…' : emailSentTo ? 'Email sent' : `Send to ${review.contact}`}
                   </button>
                 </div>
               ) : (
@@ -687,7 +688,7 @@ function PurchaseEntry() {
                   </div>
                   <div className="mt-4 flex items-center gap-2 rounded-lg border border-[#d6e0d5] bg-[#f4f6f0]/80 px-3 py-3 text-[#43594f]">
                     <Mail size={15} className="shrink-0 text-primary" />
-                    <span className="min-w-0"><span className="block font-mono text-[9px] uppercase tracking-[.12em] text-[#75847b]">Email recipient</span><span className="mt-1 block break-all text-[11px] font-semibold">shreckengost@gmail.com</span></span>
+                    <span className="min-w-0"><span className="block font-mono text-[9px] uppercase tracking-[.12em] text-[#75847b]">Email recipient</span><span className="mt-1 block break-all text-[11px] font-semibold">{selectedSupplier?.contact ?? 'Select a supplier to view contact'}</span></span>
                   </div>
                 </div>
               )}

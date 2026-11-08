@@ -12,7 +12,6 @@ import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 const connectors = new ReplitConnectors();
-const recipient = "shreckengost@gmail.com";
 const sendWindowMs = 60_000;
 const maxSendsPerWindow = 5;
 const sendWindows = new Map<string, { count: number; expiresAt: number }>();
@@ -176,6 +175,7 @@ router.post("/purchase-entry/email", async (req, res): Promise<void> => {
     .select({
       supplierId: suppliersTable.supplierId,
       supplierName: suppliersTable.supplierName,
+      contact: suppliersTable.contact,
       paymentTerms: suppliersTable.paymentTerms,
     })
     .from(suppliersTable)
@@ -186,6 +186,7 @@ router.post("/purchase-entry/email", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Supplier not found." });
     return;
   }
+  const recipient = supplier.contact;
 
   const sendAttempt = reserveSendAttempt(req.ip || "unknown");
   if (!sendAttempt.allowed) {
