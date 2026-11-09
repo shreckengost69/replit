@@ -131,6 +131,13 @@ export interface PurchaseEntryHistoryItem {
   createdAt: string;
 }
 
+export interface SupplierSpendReportRow {
+  /** @nullable */
+  supplier: string | null;
+  /** Decimal total returned by PostgreSQL. */
+  totalSpend: string;
+}
+
 export type ListSuppliersParams = {
 search?: string;
 city?: string;

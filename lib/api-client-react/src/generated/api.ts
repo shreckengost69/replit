@@ -33,6 +33,7 @@ import type {
   PurchasePriceEmailResult,
   Supplier,
   SupplierInput,
+  SupplierSpendReportRow,
   SupplierSummary,
   SupplierUpdate
 } from './api.schemas';
@@ -343,6 +344,107 @@ export function useListPurchaseEntries<TData = Awaited<ReturnType<typeof listPur
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListPurchaseEntriesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSupplierSpendReportUrl = () => {
+
+
+
+
+  return `/api/reports/supplier-spend`
+}
+
+/**
+ * @summary Get total purchase spend by supplier
+ */
+export const getSupplierSpendReport = async ( options?: Parameters<typeof customFetch>[1]): Promise<SupplierSpendReportRow[]> => {
+
+  return customFetch<SupplierSpendReportRow[]>(getGetSupplierSpendReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSupplierSpendReportQueryKey = () => {
+    return [
+    `/api/reports/supplier-spend`
+    ] as const;
+    }
+
+
+export const getGetSupplierSpendReportQueryOptions = <TData = Awaited<ReturnType<typeof getSupplierSpendReport>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplierSpendReport>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSupplierSpendReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSupplierSpendReport>>> = ({ signal }) => getSupplierSpendReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSupplierSpendReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSupplierSpendReportQueryResult = NonNullable<Awaited<ReturnType<typeof getSupplierSpendReport>>>
+export type GetSupplierSpendReportQueryError = ErrorType<unknown>
+
+
+export function useGetSupplierSpendReport<TData = Awaited<ReturnType<typeof getSupplierSpendReport>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplierSpendReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupplierSpendReport>>,
+          TError,
+          Awaited<ReturnType<typeof getSupplierSpendReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupplierSpendReport<TData = Awaited<ReturnType<typeof getSupplierSpendReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplierSpendReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSupplierSpendReport>>,
+          TError,
+          Awaited<ReturnType<typeof getSupplierSpendReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSupplierSpendReport<TData = Awaited<ReturnType<typeof getSupplierSpendReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplierSpendReport>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get total purchase spend by supplier
+ */
+
+export function useGetSupplierSpendReport<TData = Awaited<ReturnType<typeof getSupplierSpendReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSupplierSpendReport>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSupplierSpendReportQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

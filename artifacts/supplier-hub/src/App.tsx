@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import {
-  ArrowLeft, ArrowUpDown, BadgeCheck, Building2, Check, ChevronRight,
+  ArrowLeft, ArrowUpDown, BadgeCheck, BarChart3, Building2, Check, ChevronRight,
   CircleAlert, ClipboardList, Compass, FilePlus2, Globe2, LoaderCircle, Mail, MapPin,
   Package, Pencil, Plus, RefreshCw, Search, SlidersHorizontal, Trash2, UsersRound, X,
 } from 'lucide-react';
@@ -17,6 +17,7 @@ import {
   useDeleteSupplier,
   useGetPurchaseEntryStatus,
   useGetSupplier,
+  useGetSupplierSpendReport,
   useGetSupplierSummary,
   useListPurchaseEntries,
   useListSuppliers,
@@ -138,6 +139,9 @@ function AppFrame({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-3">
             <Link href="/purchase-entry" data-testid="link-purchase-entry" className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/15 bg-white/[.06] px-3 text-[11px] font-semibold text-[#f3f0e8] transition hover:bg-white/[.12]">
               <FilePlus2 size={14} /> <span className="hidden sm:inline">Purchase entry</span><span className="sm:hidden">Entry</span>
+            </Link>
+            <Link href="/reports" data-testid="link-reports" className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/15 bg-white/[.06] px-3 text-[11px] font-semibold text-[#f3f0e8] transition hover:bg-white/[.12]">
+              <BarChart3 size={14} /> Reports
             </Link>
             <span className="hidden font-mono text-[10px] tracking-wide text-[#b6c3bf] sm:block">INTERNAL</span>
           </div>
@@ -331,6 +335,98 @@ function Home() {
         </section>
       </div>
       <SupplierModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={createSupplier} busy={createMutation.isPending} error={createError} />
+    </AppFrame>
+  );
+}
+
+const reportCurrency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+function ReportsPage() {
+  const reportQuery = useGetSupplierSpendReport();
+  const rows = reportQuery.data ?? [];
+  const totalCents = rows.reduce((total, row) => total + Math.round(Number(row.totalSpend) * 100), 0);
+
+  return (
+    <AppFrame>
+      <div className="page-enter mx-auto max-w-[1120px]">
+        <header className="mb-7 flex flex-col gap-4 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[.18em] text-primary">
+              <span className="h-px w-7 bg-primary/60" /> Procurement workspace / reporting
+            </div>
+            <h1 className="font-display text-[35px] font-bold leading-[1.04] tracking-[-.055em] sm:text-[45px]">Reports</h1>
+            <p className="mt-2 max-w-[620px] text-[14px] leading-6 text-muted-foreground">Purchase entry spend grouped by supplier, using all recorded entries.</p>
+          </div>
+          <button
+            type="button"
+            data-testid="button-refresh-spend-report"
+            onClick={() => reportQuery.refetch()}
+            disabled={reportQuery.isFetching}
+            className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-lg border border-border px-3.5 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted disabled:opacity-60 sm:self-auto"
+          >
+            <RefreshCw size={13} className={reportQuery.isFetching ? 'animate-spin' : ''} />
+            Refresh report
+          </button>
+        </header>
+
+        <section className="mb-5 grid gap-3 sm:grid-cols-2">
+          <article className="rounded-xl border border-border bg-card px-5 py-5">
+            <p className="text-[12px] font-medium text-muted-foreground">Total recorded spend</p>
+            {reportQuery.isPending ? <SkeletonBlock className="mt-3 h-8 w-32" /> : reportQuery.isError ? <p className="mt-2 text-sm text-destructive">Unavailable</p> : (
+              <p data-testid="value-total-recorded-spend" className="mt-1 font-display text-[30px] font-bold tracking-[-.045em]">{reportCurrency.format(totalCents / 100)}</p>
+            )}
+            <p className="mt-1 text-[11px] text-muted-foreground">Sum of purchase entry prices</p>
+          </article>
+          <article className="rounded-xl border border-border bg-card px-5 py-5">
+            <p className="text-[12px] font-medium text-muted-foreground">Suppliers with purchase entries</p>
+            {reportQuery.isPending ? <SkeletonBlock className="mt-3 h-8 w-16" /> : reportQuery.isError ? <p className="mt-2 text-sm text-destructive">Unavailable</p> : (
+              <p data-testid="value-report-supplier-count" className="mt-1 font-display text-[30px] font-bold tracking-[-.045em]">{rows.length}</p>
+            )}
+            <p className="mt-1 text-[11px] text-muted-foreground">Grouped by supplier name</p>
+          </article>
+        </section>
+
+        <section className="overflow-hidden rounded-2xl border border-border bg-card">
+          <header className="border-b border-border px-5 py-5 sm:px-7">
+            <p className="font-mono text-[9px] uppercase tracking-[.16em] text-primary">Supplier spend</p>
+            <h2 className="mt-1 font-display text-[21px] font-bold tracking-[-.04em]">Total spend by supplier</h2>
+            <p className="mt-1 text-[12px] text-muted-foreground">Prices are converted to numeric and summed across purchase entries.</p>
+          </header>
+          {reportQuery.isPending ? (
+            <div className="space-y-3 px-5 py-6 sm:px-7">
+              <SkeletonBlock className="h-10 w-full" />
+              <SkeletonBlock className="h-10 w-full" />
+              <SkeletonBlock className="h-10 w-full" />
+            </div>
+          ) : reportQuery.isError ? (
+            <div className="flex flex-col items-center gap-3 px-5 py-10 text-center">
+              <p role="alert" className="text-[12px] text-destructive">The supplier spend report couldn’t be loaded.</p>
+              <button type="button" onClick={() => reportQuery.refetch()} className="rounded-md border border-border px-3 py-2 text-[11px] font-semibold hover:bg-muted">Try again</button>
+            </div>
+          ) : rows.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[480px]">
+                <thead className="bg-[#f3f0e8]/70 text-left font-mono text-[9px] uppercase tracking-[.13em] text-muted-foreground">
+                  <tr>
+                    <th scope="col" className="px-5 py-3 sm:px-7">Supplier</th>
+                    <th scope="col" className="px-5 py-3 text-right sm:px-7">Total spend</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/80">
+                  {rows.map((row, index) => (
+                    <tr key={`${row.supplier ?? 'unmatched'}-${index}`} data-testid={`report-row-${index}`} className="transition hover:bg-[#f6f3eb]">
+                      <td className="px-5 py-4 text-[13px] font-semibold sm:px-7">{row.supplier ?? 'Supplier not matched'}</td>
+                      <td className="px-5 py-4 text-right font-mono text-[13px] font-semibold sm:px-7">{reportCurrency.format(Number(row.totalSpend))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="px-5 py-10 text-center text-[12px] text-muted-foreground">No purchase entries to report yet. Emailed entries will appear here.</p>
+          )}
+        </section>
+      </div>
     </AppFrame>
   );
 }
@@ -795,6 +891,7 @@ function Router() {
     <RoutedErrorBoundary>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/reports" component={ReportsPage} />
         <Route path="/suppliers/:supplierId" component={Detail} />
         <Route path="/purchase-entry" component={PurchaseEntry} />
         <Route component={NotFound} />

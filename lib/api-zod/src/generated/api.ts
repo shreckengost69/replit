@@ -59,6 +59,16 @@ export const ListPurchaseEntriesResponse = zod.array(ListPurchaseEntriesResponse
 
 
 /**
+ * @summary Get total purchase spend by supplier
+ */
+export const GetSupplierSpendReportResponseItem = zod.object({
+  "supplier": zod.string().nullable(),
+  "totalSpend": zod.string().describe('Decimal total returned by PostgreSQL.')
+})
+export const GetSupplierSpendReportResponse = zod.array(GetSupplierSpendReportResponseItem)
+
+
+/**
  * @summary Check a purchase entry approval reply
  */
 export const GetPurchaseEntryStatusParams = zod.object({

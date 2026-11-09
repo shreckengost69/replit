@@ -66,6 +66,20 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/PurchaseEntryHistoryItem"
+  /reports/supplier-spend:
+    get:
+      operationId: getSupplierSpendReport
+      tags: [suppliers]
+      summary: Get total purchase spend by supplier
+      responses:
+        "200":
+          description: Purchase spend grouped by supplier name
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SupplierSpendReportRow"
   /purchase-entry/{purchaseEntryId}/status:
     get:
       operationId: getPurchaseEntryStatus
@@ -455,4 +469,13 @@ components:
         - recipient
         - status
         - createdAt
+    SupplierSpendReportRow:
+      type: object
+      properties:
+        supplier:
+          type: ["string", "null"]
+        totalSpend:
+          type: string
+          description: Decimal total returned by PostgreSQL.
+      required: [supplier, totalSpend]
 

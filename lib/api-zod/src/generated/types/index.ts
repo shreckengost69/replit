@@ -19,5 +19,6 @@ export * from './purchasePriceEmailResult';
 export * from './supplier';
 export * from './supplierBreakdown';
 export * from './supplierInput';
+export * from './supplierSpendReportRow';
 export * from './supplierSummary';
 export * from './supplierUpdate';
